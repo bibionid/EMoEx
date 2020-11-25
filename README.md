@@ -1,4 +1,4 @@
-# Earlham Motif Extrapolation pipeline 
+# EMoEX: Earlham Motif Extrapolation pipeline 
 
 A pipeline developed to lift over motif annotations
 
