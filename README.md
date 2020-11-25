@@ -13,7 +13,7 @@ Work in progress
 ## Developers 
 - Will Nash
 - Tarang Mehta
-- Paddy Suhdakar
+- Padhmanand Sudhakar
 - Wilfried Haerty
 
 ## Contributors 
