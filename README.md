@@ -11,13 +11,12 @@ The full documentation for this pipeline is available at emoex.readthedocs.io
 Work in progress
 
 ## Developers 
-
-  Will Nash
-  Tarang Mehta
-  Paddy Suhdakar
-  Wilfried Haerty
+- Will Nash
+- Tarang Mehta
+- Paddy Suhdakar
+- Wilfried Haerty
 
 ## Contributors 
 
-Federica DiPalma
-Tamas Korcsmaros
+- Federica DiPalma
+- Tamas Korcsmaros
