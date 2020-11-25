@@ -2,4 +2,4 @@ sphinxcontrib-autoprogram
 numpy
 pandas
 seaborn
-matplotlib.pyplot
+matplotlib
