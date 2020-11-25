@@ -4,7 +4,7 @@ A pipeline developed to lift over motif annotations
 
 ## Documentation 
 
-The full documentation for this pipeline is available at emoex.readthedocs.io
+The full documentation for this pipeline is available at https://emoex.readthedocs.io
 
 ## Description
 
