@@ -10,6 +10,15 @@ The full documentation for this pipeline is available at
 
 Work in progress
 
+
+## Acknowledgments
+
+GTRD Database
+
+## Installation
+
+Work in progress
+
 ## Developers 
 - Will Nash
 - Tarang Mehta

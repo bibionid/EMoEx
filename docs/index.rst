@@ -1,5 +1,5 @@
 
-EMoEx: Earlham Motif Extrapolation pipeline
+EMotEP: Earlham Motif Extrapolation pipeline
 ===========================================
 
 .. toctree::
