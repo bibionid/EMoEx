@@ -1,6 +1,6 @@
 
 EMotEP: Earlham Motif Extrapolation pipeline
-=::===========================================
+============================================
 
 .. toctree::
    :maxdepth: 2

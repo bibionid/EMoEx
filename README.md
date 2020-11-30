@@ -1,31 +1,33 @@
-# EMotEP: Earlham Motif Extrapolation pipeline 
+<img src="https://www.earlham.ac.uk/sites/default/files/images/pages/Brand/EI-double-large-trans-highquality.png" alt="EI Logo" width="200"/>
 
-A pipeline developed to lift over motif annotations
+# EMotEP: **E**arlham **Mot**if **E**xtrapolation **P**ipeline
 
-## Documentation 
+EMotEP is a snakemake pipeline developed to lift-over regulatory motif annotations drawn from ChIP-seq data. The pipeline is designed to use data from well annotated model species, and lift-over to species which have annotated genomes but no regulatory motif annotations.
 
-The full documentation for this pipeline is available at 
+## Documentation
+
+The full documentation for this pipeline is available at https://emotep.readthedocs.io/en/latest/
 
 ## Description
 
-Work in progress
+The pipeline works by extracting putative, user defined, regulatory regions from all annotated genes in a genome. Based on user defined orthology information, the putative regulatory region of each gene is then scanned for sequences which match ChIP-seq peaks in the model speices orthologue. Based on all matching sequences, across the genome, the motif for each transcription factor is redefined beased on the matching seqences retreived from the non-model target species.
 
+### Pipeline Digram
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/PlaceholderLC.png" alt="By CC0 Public Domain Dedication - https://creativecommons.org/publicdomain/zero/1.0/, CC0, https://commons.wikimedia.org/w/index.php?curid=72025515" width="200"/>
 
 ## Acknowledgments
 
-GTRD Database
+GTRD Database https://gtrd.biouml.org/
 
-## Installation
 
-Work in progress
-
-## Developers 
+## Developers
 - Will Nash
 - Tarang Mehta
 - Padhmanand Sudhakar
 - Wilfried Haerty
 
-## Contributors 
+## Contributors
 
 - Federica DiPalma
 - Tamas Korcsmaros
