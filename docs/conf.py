@@ -38,6 +38,9 @@ extensions = [
     'sphinxcontrib.autoprogram'
 ]
 
+# Added by WJN (2020.11.29) to solve content.rst error on readthedocs build.
+master_doc = 'index'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
