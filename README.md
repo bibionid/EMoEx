@@ -2,15 +2,15 @@
 
 # EMotEP: **E**arlham **Mot**if **E**xtrapolation **P**ipeline
 
-EMotEP is a snakemake pipeline developed to lift-over regulatory motif annotations drawn from ChIP-seq data. The pipeline is designed to use data from well annotated model species, and lift-over to species which have annotated genomes but no regulatory motif annotations.
+EMotEP is a Snakemake based pipeline developed to lift-over regulatory motif annotations drawn from ChIP-seq data. The pipeline is designed to use data from well annotated model species, and lift-over to species which have annotated genomes but no regulatory motif annotations.
 
 ## Documentation
 
-The full documentation for this pipeline is available at https://emotep.readthedocs.io/en/latest/
+The full documentation for this pipeline is available on [readthedocs](https://emotep.readthedocs.io/)
 
 ## Description
 
-The pipeline works by extracting putative, user defined, regulatory regions from all annotated genes in a genome. Based on user defined orthology information, the putative regulatory region of each gene is then scanned for sequences which match ChIP-seq peaks in the model speices orthologue. Based on all matching sequences, across the genome, the motif for each transcription factor is redefined beased on the matching seqences retreived from the non-model target species.
+The pipeline works by extracting putative, user defined, regulatory regions from all annotated genes in a genome. Based on user defined orthology information, the putative regulatory region of each gene is then scanned for sequences which match ChIP-seq peaks in the model species orthologue. Based on all sequence matches across the genome, the motif for each transcription factor is redefined based on the matching sequences retrieved from the non-model target species.
 
 ### Pipeline Digram
 
@@ -18,7 +18,7 @@ The pipeline works by extracting putative, user defined, regulatory regions from
 
 ## Acknowledgments
 
-GTRD Database https://gtrd.biouml.org/
+[GTRD Database](https://gtrd.biouml.org/)
 
 
 ## Developers
