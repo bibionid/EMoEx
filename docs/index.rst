@@ -1,10 +1,20 @@
 
 EMotEP: Earlham Motif Extrapolation pipeline
-=::===========================================
+============================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Documentation contents:
+
+   description
+   installation
+   usage
+   output
+
+
+Description
+===========
+
 
 .. autoprogram:: bin.promBED_fromGeneBED_20kbHardCoded_figures:parser
    :prog: promBED_fromGeneBED_20kbHardCoded_figures.py
