@@ -1,0 +1,41 @@
+configfile: "config/emotep_config.yaml"
+
+work_dir   = config["workdir"]
+output_dir = config["outdir"]
+
+script_dir = "workflow/scripts"
+
+print(work_dir)
+
+shell.suffix("; sleep 30")
+shell.prefix("set -e; set -o pipefail; ")
+
+
+rule all:
+    input:
+        expand("{OUTPUT_DIR}input1.txt", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}input2.txt", OUTPUT_DIR = output_dir)
+
+rule compute1:
+    output:
+        "{OUTPUT_DIR}input1.txt"
+    shell:
+        "touch {output}"
+
+rule compute2:
+    output:
+        "{OUTPUT_DIR}input2.txt"
+    shell:
+        "touch {output}"
+
+# rule all:
+#     input:
+#         # recapitulates peaks with annotation and
+#
+# rule visualisePromoterDistribution:
+#     input:
+#
+#     output:
+#
+#     shell:
+#

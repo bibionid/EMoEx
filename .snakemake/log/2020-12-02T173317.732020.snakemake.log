@@ -1,0 +1,7 @@
+Building DAG of jobs...
+Relative file path './results/input1.txt' starts with './'. This is redundant and strongly discouraged. It can also lead to inconsistent results of the file-matching approach used by Snakemake. You can simply omit the './' for relative file paths.
+Relative file path './results/input2.txt' starts with './'. This is redundant and strongly discouraged. It can also lead to inconsistent results of the file-matching approach used by Snakemake. You can simply omit the './' for relative file paths.
+MissingInputException in line 14 of /Users/admin/Desktop/EMotEP/workflow/Snakefile:
+Missing input files for rule all:
+./results/input1.txt
+./results/input2.txt

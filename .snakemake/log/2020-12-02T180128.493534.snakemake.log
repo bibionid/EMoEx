@@ -1,0 +1,43 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	compute1
+	1	compute2
+	3
+Select jobs to execute...
+
+[Wed Dec  2 18:01:28 2020]
+rule compute1:
+    output: results/input1.txt
+    jobid: 1
+    wildcards: OUTPUT_DIR=results/
+
+[Wed Dec  2 18:01:59 2020]
+Finished job 1.
+1 of 3 steps (33%) done
+Select jobs to execute...
+
+[Wed Dec  2 18:01:59 2020]
+rule compute2:
+    output: results/input2.txt
+    jobid: 2
+    wildcards: OUTPUT_DIR=results/
+
+[Wed Dec  2 18:02:29 2020]
+Finished job 2.
+2 of 3 steps (67%) done
+Select jobs to execute...
+
+[Wed Dec  2 18:02:29 2020]
+localrule all:
+    input: results/input1.txt, results/input2.txt
+    jobid: 0
+
+[Wed Dec  2 18:02:29 2020]
+Finished job 0.
+3 of 3 steps (100%) done
+Complete log: /Users/admin/Desktop/EMotEP/.snakemake/log/2020-12-02T180128.493534.snakemake.log
