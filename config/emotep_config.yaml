@@ -1,8 +1,8 @@
 workdir: .
 
-outdir: results
+outdir: outputs
 
-test_input: resources/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
+test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
 
 # genome_sequences:
 #   hg38: data/Homo_sapiens.GRCh38.dna.primary_assembly_singleLine.fa

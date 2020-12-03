@@ -16,7 +16,7 @@ To install the pipeline follow these steps:
 
 .. code-block:: bash
 
-  vim config/config.yaml
+  vim config/emotep_config.yaml
 
 3. Execute workflow, deploy software dependencies via conda
 
