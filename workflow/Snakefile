@@ -22,7 +22,7 @@ rule compute1:
     shell:
         "touch {output}"
 
-rule compute2:
+rule visualiseCisRegionLengthDist:
     input:
         CIS_REGION_ANNOTATION = config["test_input"]
     output:
