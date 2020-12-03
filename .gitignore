@@ -68,8 +68,13 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Snakemake
+.snakemake/
+
 # Sphinx documentation
 docs/_build/
+docs/Makefile
+.readthedocs.yml
 
 # PyBuilder
 .pybuilder/
@@ -136,3 +141,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+#Development of EMotEP
+inputs/
+outputs/
