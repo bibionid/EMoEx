@@ -142,6 +142,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-#Development of EMotEP
+# Development of EMotEP
 inputs/
 outputs/
