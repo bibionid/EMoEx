@@ -13,29 +13,19 @@ shell.prefix("set -e; set -o pipefail; ")
 
 rule all:
     input:
-        expand("{OUTPUT_DIR}input1.txt", OUTPUT_DIR = output_dir),
-        expand("{OUTPUT_DIR}input2.txt", OUTPUT_DIR = output_dir)
+        expand("{OUTPUT_DIR}/input1.txt", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf", OUTPUT_DIR = output_dir)
 
 rule compute1:
     output:
-        "{OUTPUT_DIR}input1.txt"
+        "{OUTPUT_DIR}/input1.txt"
     shell:
         "touch {output}"
 
 rule compute2:
+    input:
+        CIS_REGION_ANNOTATION = config["test_input"]
     output:
-        "{OUTPUT_DIR}input2.txt"
+        "{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf"
     shell:
-        "touch {output}"
-
-# rule all:
-#     input:
-#         # recapitulates peaks with annotation and
-#
-# rule visualisePromoterDistribution:
-#     input:
-#
-#     output:
-#
-#     shell:
-#
+        "python3 {script_dir}/promBED_fromGeneBED_20kbHardCoded_figures.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"

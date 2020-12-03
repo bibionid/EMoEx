@@ -9,7 +9,7 @@ To install the pipeline follow these steps:
 
 .. code-block:: bash
 
-  git clone https://github.com/bibionid/EMotEP.git path/to/workdir''
+  git clone https://github.com/bibionid/EMotEP.git path/to/workdir
   cd path/to/workdir
 
 2. Edit config and workflow as needed

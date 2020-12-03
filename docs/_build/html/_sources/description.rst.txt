@@ -9,5 +9,5 @@ This is the pipieline
 
 Scripts
 ^^^^^^^
-.. autoprogram:: workflow.promBED_fromGeneBED_20kbHardCoded_figures:parser
+.. autoprogram:: workflow.scripts.promBED_fromGeneBED_20kbHardCoded_figures:parser
    :prog: promBED_fromGeneBED_20kbHardCoded_figures.py
