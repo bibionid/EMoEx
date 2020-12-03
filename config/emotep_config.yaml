@@ -1,0 +1,22 @@
+workdir: .
+
+outdir: outputs
+
+test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
+
+# genome_sequences:
+#   hg38: data/Homo_sapiens.GRCh38.dna.primary_assembly_singleLine.fa
+#
+# genome_annotations:
+#   annotation_file: data/Homo_sapiens.GRCh38.90.gff3
+
+# GTRD_peaks:
+#   forward_strand: data/hg38.downstream_forward_within10kb_noCTCF_PCGsonly.txt
+#   reverse_strand: data/hg38.upstream_reverse_within10kb_noCTCF_PCGsonly.txt
+#
+
+#
+# JASPAR_db:
+#   species_specific: data/JASPAR/Jaspar_PSSMs_hsap_1.txt
+#   all_motifs: data/JASPAR/JASPAR_core_meta.csv
+#   sites_dir: /ei/workarea/group-eg/project_cichlids/data/motifs/extrapolation/JASPAR2018/sites/

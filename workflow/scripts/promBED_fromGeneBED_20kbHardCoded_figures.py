@@ -77,7 +77,7 @@ def main (inBED, out_path):
 
     figure.savefig(out_path + '/Om_5kbRegions_lengthDist.pdf')
 
-    print('\nAnnotation size distribution plot written to: ' + out_path + 'Ara_20kbRegions_lengthDist.pdf\n')
+    print('\nAnnotation size distribution plot written to: ' + out_path + '/Om_5kbRegions_lengthDist.pdf\n')
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
