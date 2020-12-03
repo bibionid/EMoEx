@@ -31,6 +31,9 @@ from itertools import groupby
 
 
 def asint(s):
+    '''
+    returns an integer value 
+    '''
     try: return int(s), ''
     except ValueError: return sys.maxsize, s
 
