@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 25 of /Users/admin/Desktop/EMotEP/workflow/Snakefile:
-Missing input files for rule compute2:
-resources/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed

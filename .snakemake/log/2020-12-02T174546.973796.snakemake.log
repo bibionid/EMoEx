@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 14 of /Users/admin/Desktop/EMotEP/workflow/Snakefile:
-Missing input files for rule all:
-results/input1.txt
-results/input2.txt
