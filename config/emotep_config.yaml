@@ -1,8 +1,17 @@
+#the working directory
 workdir: .
 
+#directory where all outputs of the pipeline will be written
 outdir: outputs
 
 test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
+
+#nucleotide length of the cis regions to be targeted by the pipeline
+cis_region: 250
+
+target_genome:
+  annotation: inputs/test.bed
+  sequences:  inputs/Oreochromis_mossambicus_EIV1.shortScaffoldID.singleLine.fasta
 
 # genome_sequences:
 #   hg38: data/Homo_sapiens.GRCh38.dna.primary_assembly_singleLine.fa

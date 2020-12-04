@@ -1,3 +1,5 @@
+import os
+
 configfile: "config/emotep_config.yaml"
 
 work_dir   = config["workdir"]
@@ -5,27 +7,29 @@ output_dir = config["outdir"]
 
 script_dir = "workflow/scripts"
 
-print(work_dir)
-
 shell.suffix("; sleep 30")
 shell.prefix("set -e; set -o pipefail; ")
 
-
 rule all:
     input:
-        expand("{OUTPUT_DIR}/input1.txt", OUTPUT_DIR = output_dir),
-        expand("{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf", OUTPUT_DIR = output_dir)
+        expand("{OUTPUT_DIR}/cisRegions.bed", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir)
 
-rule compute1:
+rule callCisRegions:
+    input:
+        TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation'],
+        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences'],
+    params:
+        CIS_REGION = config['cis_region']
     output:
-        "{OUTPUT_DIR}/input1.txt"
+        "{OUTPUT_DIR}/cisRegions.bed"
     shell:
-        "touch {output}"
+        "python3 {script_dir}/cisRegion.py {input.TARGET_GENE_ANNOTATIONS} {input.TARGET_GENOME_SEQUENCES} {params.CIS_REGION} {wildcards.OUTPUT_DIR}"
 
 rule visualiseCisRegionLengthDist:
     input:
-        CIS_REGION_ANNOTATION = config["test_input"]
+        CIS_REGION_ANNOTATION = "{OUTPUT_DIR}/cisRegions.bed"
     output:
-        "{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf"
+        "{OUTPUT_DIR}/cisRegions_lengthDist.pdf"
     shell:
         "python3 {script_dir}/promBED_fromGeneBED_20kbHardCoded_figures.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"

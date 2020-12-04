@@ -75,7 +75,7 @@ def main (inBED, out_path):
     #write figure
     figure   = dist.get_figure()
 
-    figure.savefig(out_path + '/Om_5kbRegions_lengthDist.pdf')
+    figure.savefig(out_path + '/cisRegions_lengthDist.pdf')
 
     print('\nAnnotation size distribution plot written to: ' + out_path + '/Om_5kbRegions_lengthDist.pdf\n')
 

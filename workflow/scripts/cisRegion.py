@@ -727,7 +727,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
 
                         stored_chr = gene[1][0][1][0]
 
-            with open(os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + '_cisRegions.stranded.bed'), 'w') as out_file:
+            # with open(os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + 'nt_cisRegions.stranded.bed'), 'w') as out_file:
+            with open(os.path.join(OUTPUT_DIR, 'cisRegions.bed'), 'w') as out_file:
 
                 for bit in sorted_chrm_list:
 
@@ -773,11 +774,13 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                         else:
                             print('--- ' + str(bit[1][0][1][4]) + ' removed' + '\t' + str(bit[1][0][1][3]) + '\t' + str(bit[1][0][1][1]) + '\t' + str(bit[1][0][1][2]))
 
-    with open(os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out'), 'w') as out2:
+    # with open(os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out'), 'w') as out2:
+    with open(os.path.join(OUTPUT_DIR, 'same_strand+start.out'), 'w') as out2:
         for out in same_strand_start:
             if out not in remove_list:
                 out2.write(str(out) + '\n')
-    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + '_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
+    # print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + 'nt_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
+    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, cisRegions.bed') + '\n\t' + os.path.join(OUTPUT_DIR, 'same_strand+start.out') + '\n\n')
 
 
 def main(GENE_BED, GENOME_FASTA, ntWINDOW, OUTPUT_DIR):
