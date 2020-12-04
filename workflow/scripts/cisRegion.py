@@ -69,7 +69,7 @@ def scaffoldLister(BED_IN):
     chr_set = set(chr_list)
     return(chr_set)
 
-def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUT_FILE, SCAFF_LIMS):
+def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
     '''
     This highly repetitive function works to call cis regions upstream of
     annotated genes. It excludes cis regions that overlap coding sequence. It
@@ -89,6 +89,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUT_FILE, SCAFF_LIMS):
     '''
     remove_list       = []
     same_strand_start = []
+    filename = os.path.basename(BED_IN)
+
     for chrom in sorted(SCAF_LIST):
         print('\n\nWorking with chromosome ' + chrom + '\n')
         with open(BED_IN) as GENEBED_archive:
@@ -654,7 +656,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUT_FILE, SCAFF_LIMS):
                                             print('\n')
                                         strand_skip  = '@'
 
-                                elif int(gene[1][0][1][1]) - 5000 <=
+                                elif int(gene[1][0][1][1]) - 5000 <= 0:
 
                                     if int(gene[1][0][1][1]) - int(stored_stop) > 0:
                                         gene[1][0][1].append(0)
@@ -772,66 +774,64 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUT_FILE, SCAFF_LIMS):
 
                         stored_chr = gene[1][0][1][0]
 
-            print('\nWriting to:\t' + BED_IN[:-3] + '5Kb_cisRegions.stranded.bed')
+            with open(os.path.join(OUTPUT_DIR, filename[:-3] + '5Kb_cisRegions.stranded.bed'), 'w') as out_file:
 
-            for bit in sorted_chrm_list:
+                for bit in sorted_chrm_list:
 
-                if len(bit[1]) > 1:
-                    for res in bit[1]:
-                        if res[1][4] not in remove_list:
-                            print('Keeping: ' + str(res))
-                            if res[1][3] == '+':
-                                OUT_FILE.write(res[1][0] + '\t' + str(int(res[1][5])) + '\t' + str(res[1][1]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
-                            elif res[1][3] == '-':
+                    if len(bit[1]) > 1:
+                        for res in bit[1]:
+                            if res[1][4] not in remove_list:
+                                print('Keeping: ' + str(res))
+                                if res[1][3] == '+':
+                                    out_file.write(res[1][0] + '\t' + str(int(res[1][5])) + '\t' + str(res[1][1]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
+                                elif res[1][3] == '-':
 
-                                if int(res[1][5]) > int(SCAFF_LIMS[res[1][0]]):
+                                    if int(res[1][5]) > int(SCAFF_LIMS[res[1][0]]):
 
-                                    print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(res[1][5]) + ' to ' + str(SCAFF_LIMS[res[1][0]]) + '\n\n\n')
+                                        print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(res[1][5]) + ' to ' + str(SCAFF_LIMS[res[1][0]]) + '\n\n\n')
+                                        # time.sleep(2)
+
+                                        out_file.write(res[1][0] + '\t' + str(int(res[1][2])) + '\t' + str(SCAFF_LIMS[res[1][0]]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
+
+                                    else:
+
+                                        out_file.write(res[1][0] + '\t' + str(int(res[1][2])) + '\t' + str(res[1][5]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
+                            else:
+                                print('--- ' + str(res[1][4]) + ' removed' + '\t' + res[1][3] + '\t' + res[1][1] + '\t' + res[1][2])
+                    else:
+
+                        if bit[1][0][1][4] not in remove_list:
+
+                            print('Keeping: ' + str(bit))
+                            if bit[1][0][1][3] == '+':
+                                out_file.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][5]) + '\t' + str(bit[1][0][1][1]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
+
+                            elif bit[1][0][1][3] == '-':
+
+                                if int(bit[1][0][1][5]) > int(SCAFF_LIMS[bit[1][0][1][0]]):
+                                    print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(bit[1][0][1][5]) + ' to ' + str(SCAFF_LIMS[bit[1][0][1][0]]) + '\n\n\n')
+
                                     # time.sleep(2)
 
-                                    OUT_FILE.write(res[1][0] + '\t' + str(int(res[1][2])) + '\t' + str(SCAFF_LIMS[res[1][0]]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
+                                    out_file.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][2]) + '\t' + str(SCAFF_LIMS[bit[1][0][1][0]]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
 
                                 else:
-
-                                    OUT_FILE.write(res[1][0] + '\t' + str(int(res[1][2])) + '\t' + str(res[1][5]) + '\t' + str(res[0]) + '\t1\t' + str(res[1][3]) + '\n')
+                                    out_file.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][2]) + '\t' + str(bit[1][0][1][5]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
                         else:
-                            print('--- ' + str(res[1][4]) + ' removed' + '\t' + res[1][3] + '\t' + res[1][1] + '\t' + res[1][2])
-                else:
+                            print('--- ' + str(bit[1][0][1][4]) + ' removed' + '\t' + str(bit[1][0][1][3]) + '\t' + str(bit[1][0][1][1]) + '\t' + str(bit[1][0][1][2]))
 
-                    if bit[1][0][1][4] not in remove_list:
-
-                        print('Keeping: ' + str(bit))
-                        if bit[1][0][1][3] == '+':
-                            OUT_FILE.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][5]) + '\t' + str(bit[1][0][1][1]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
-
-                        elif bit[1][0][1][3] == '-':
-
-                            if int(bit[1][0][1][5]) > int(SCAFF_LIMS[bit[1][0][1][0]]):
-                                print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(bit[1][0][1][5]) + ' to ' + str(SCAFF_LIMS[bit[1][0][1][0]]) + '\n\n\n')
-
-                                # time.sleep(2)
-
-                                OUT_FILE.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][2]) + '\t' + str(SCAFF_LIMS[bit[1][0][1][0]]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
-
-                            else:
-                                OUT_FILE.write(str(bit[1][0][1][0]) + '\t' + str(bit[1][0][1][2]) + '\t' + str(bit[1][0][1][5]) + '\t' + str(bit[1][0][1][4].strip()) + '\t1\t' + str(bit[1][0][1][3].strip()) + '\n')
-                    else:
-                        print('--- ' + str(bit[1][0][1][4]) + ' removed' + '\t' + str(bit[1][0][1][3]) + '\t' + str(bit[1][0][1][1]) + '\t' + str(bit[1][0][1][2]))
-    OUT_FILE.close()
-
-    with open(BED_IN[:-3] + 'same_strand+start.out', 'w') as out2:
+    with open(os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out'), 'w') as out2:
         for out in same_strand_start:
             if out not in remove_list:
                 out2.write(str(out) + '\n')
-    print('\n\n\nOutput closed\n')
+    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + '5Kb_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
 
 
-def main(GENE_BED, GENOME_FASTA):
+def main(GENE_BED, GENOME_FASTA, OUTPUT_DIR):
+    print('\n\ncisRegion.py\n\n')
     print('Loading annotations from:\t' + GENE_BED)
-
-    # Depreciated way of making output - will be removed in final version
-    print('\nWriting to outfile:\t' + GENE_BED[:-4] + '.5Kb_cisRegions.stranded.bed')
-    out_file  = open(GENE_BED[:-4] + '.5Kb_cisRegions.stranded.bed', 'w')
+    print('Loading sequences from:\t' + GENOME_FASTA)
+    print('Writing cis annotations to:\t' + OUTPUT_DIR + '\n')
 
     # create a list of scaffold IDs
     scaffold_set = scaffoldLister(GENE_BED)
@@ -843,16 +843,17 @@ def main(GENE_BED, GENOME_FASTA):
     #     print(chr + '\t' + str(lim))
 
     #call cis regions - to be updated
-    hugeCisRegionCallingBehmoth(scaffold_set, GENE_BED, out_file, scaff_limits)
+    hugeCisRegionCallingBehmoth(scaffold_set, GENE_BED, OUTPUT_DIR, scaff_limits)
 
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('BED_in',   type=str, help='path to promoter annotation in BED format')
-parser.add_argument('FASTA_in', type=str, help='path to directory where the figure should be written')
+parser.add_argument('BED_in',   type=str, help='path to promoter annotation in .BED format')
+parser.add_argument('FASTA_in', type=str, help='path to genome sequences in .FASTA format')
+parser.add_argument('OUT_dir',  type=str, help='path to directory where the output should be written')
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.BED_in, args.FASTA_in)
+    main(args.BED_in, args.FASTA_in, args.OUT_dir)
