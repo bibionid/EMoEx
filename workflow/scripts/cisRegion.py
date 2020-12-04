@@ -7,17 +7,16 @@ Extract a user defined region upstream of input annotations
 
 Developed on protein coding genes in vertebrate genomes
 
-Accounts for overlapping annotations and those that share start sites_dir
+Accounts for overlapping annotations and those that share start sites
 
-Input: annotation (.bed) genome (.fasta)
-Output cisRegion annotation (.bed) cisRegion sequences (.fasta) list of excluded genes (.txt)
+Input: annotation (.bed), genome (.fasta)
+Output cisRegion annotation (.bed), list of flagged genes sharing start & strand (.txt)
 '''
 
 #import libraries
 import os
 import sys
 import csv
-import time
 import argparse
 
 
@@ -69,7 +68,7 @@ def scaffoldLister(BED_IN):
     chr_set = set(chr_list)
     return(chr_set)
 
-def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
+def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_WINDOW):
     '''
     This highly repetitive function works to call cis regions upstream of
     annotated genes. It excludes cis regions that overlap coding sequence. It
@@ -97,7 +96,6 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
             gene_dict = {}
             for gene in csv.reader(GENEBED_archive, delimiter = '\t'):
                 if gene[0][0] != '#':
-                    # print(gene)
                     if gene[0] == chrom:
                         try:
                             if gene[3] in gene_dict:
@@ -105,12 +103,11 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                 sys.exit()
                             else:
                                 gene_dict[gene[3]] = [gene[0], gene[1], gene[2], gene[5], gene[3]]
-                                print()
+
                         except:
                             print('\n\n--- Error during gene library construction ---\n\n')
                             print('\n'+ str(gene) +'\n')
                             sys.exit()
-
 
             sorted_gene_list = [(k, gene_dict[k]) for k in sorted(gene_dict, key=asint)]
 
@@ -118,10 +115,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
             for gen in sorted_gene_list:
                 if gen[1][1] not in chrom_dict:
                     chrom_dict[gen[1][1]] = [gen]
-                    # print(chrom_dict[gen[1][1]])
+
                 else:
-                    # print(gen)
-                    # print(chrom_dict[gen[1][1]])
                     if chrom_dict[gen[1][1]][0][1][3] == gen[1][3]:
 
                         print('Recording gene ' + gen[1][4] + ' with promoter overlap the same strand')
@@ -129,16 +124,11 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                         same_strand_start.append(gen[1][4])
 
                         chrom_dict[gen[1][1]].append(gen)
-                        # same_strand_start[chrom_dict[gen[1][1]][0][1][4]] = gen[1][4]
-                        # print(same_strand_start[chrom_dict[gen[1][1]][0][1][4]])
-                        # time.sleep(1)
+
                     else:
                         chrom_dict[gen[1][1]].append(gen)
-                    # print(chrom_dict[gen[1][1]])
 
             sorted_chrm_list = [(k, chrom_dict[k]) for k in sorted(chrom_dict, key=asint)]
-            # for gl in sorted_chrm_list:
-            #     print(gl)
 
             count           = 0
             switch          = 0
@@ -148,23 +138,18 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
             stored_strand   = '+'
             strand_skip     = '@'
             for gene in sorted_chrm_list:
-                print(gene)
 
                 #this removes genes that start at 0 on a scaffold
                 if int(gene[0]) == 0 and gene[1][0][1][3] == '+':
                     remove_list.append(gene[1][0][1][4])
                     print('\n\n\nRemoving gene with no possible promoter\n\n\n\n')
-                    stored_start    = 1
-                    count = count + 1
+                    stored_start = 1
+                    count        = count + 1
                     continue
 
                 if switch == 0:
                     stored_stop = gene[1][0][1][2]
-                    switch = 1
-                print(stored_chr)
-                print(stored_start)
-                print(stored_stop)
-                print(stored_strand)
+                    switch      = 1
 
                 if len(gene[1]) > 1:
                     print ('\n\n\n\n !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ' + str(len(gene[1])) + ' DUPLICATES!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n\n')
@@ -173,7 +158,6 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                     stored_dup_stop  = '@'
                     stored_dup_prom  = '@'
                     for d_c, dup in enumerate(gene[1]):
-                        print(dup)
                         print('--- On gene =\t' + dup[0] + ' ' + dup[1][3])
 
                         if d_c > 0:
@@ -198,9 +182,9 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                         print('Previous gene overlapping - same start site on the negative strand - annotation not recorded\n')
                                         remove_list.append(stored_dup_name)
                                         try:
-                                            dup[1][5] = int(dup[1][2])+ 5000
+                                            dup[1][5] = int(dup[1][2]) + CIS_WINDOW
                                         except(IndexError):
-                                            dup[1].append(int(dup[1][2])+ 5000)
+                                            dup[1].append(int(dup[1][2]) + CIS_WINDOW)
                                         stored_start = int(dup[1][2])
 
                                     else:
@@ -209,11 +193,10 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
 
                             else:
                                 if dup[1][3] == '-':
-                                    # print(dup[1][2])
-                                    # print(stored_dup_stop)
+
                                     if int(dup[1][2]) >= int(stored_dup_stop):
-                                        dup[1].append(int(dup[1][2])+ 5000)
-                                        print('Gene ' + dup[1][4] + ',\tstop:\t' + str(dup[1][2]) + ',\treplaces with ' + dup[1][2] + '+ 5000\n')
+                                        dup[1].append(int(dup[1][2]) + CIS_WINDOW)
+                                        print('Gene ' + dup[1][4] + ',\tstop:\t' + str(dup[1][2]) + ',\treplaces with ' + dup[1][2] + ' + ' + str(CIS_WINDOW) + '\n')
                                         stored_start = int(dup[1][2])
                                         stroed_stop  = int(dup[1][1])
                                     else:
@@ -223,16 +206,16 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                         print('Promoter overlapping CDS - promoter not annotated')
                                 elif dup[1][3] == '+':
                                     if stored_strand == '-':
-                                        dist = int((int(dup[1][1])-int(stored_start))/2)
+                                        dist = int((int(dup[1][1]) - int(stored_start)) / 2)
 
                                         if dist <= 1:
                                             print('\nOverlapping gene - promoter not annotated')
                                             remove_list.append(dup[1][4])
                                             print('\nGene prior to overlapping pair also promoter not annotated due to overlap')
-                                            remove_list.append(sorted_chrm_list[count-2][1][0][1][4])
+                                            remove_list.append(sorted_chrm_list[count - 2][1][0][1][4])
                                             continue
 
-                                        elif dist < 5000 :
+                                        elif dist < CIS_WINDOW :
                                             print('Duplicate start site gene - calculating mid distance for promoter')
                                             print('Gene ' + dup[1][4] + ',\tstart:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][1] + ' - ' + str(int((int(dup[1][1])-int(stored_start))/2)))
                                             dup[1].append(int(int(dup[1][1]) - int((int(dup[1][1])-int(stored_start))/2)))
@@ -243,13 +226,13 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                             print(str(sorted_chrm_list[count-2][1][0][1]))
 
                                         else:
-                                            print('Gene ' + dup[1][4] + ',\tstart:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][1] + '- 5000')
-                                            dup[1].append(int(dup[1][1])- 5000)
+                                            print('Gene ' + dup[1][4] + ',\tstart:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][1] + ' - ' + str(CIS_WINDOW) + '\n')
+                                            dup[1].append(int(dup[1][1]) - CIS_WINDOW)
 
                                     else:
-                                        if int(dup[1][1])- 5000 >= stored_stop:
-                                            dup[1].append(int(dup[1][1])- 5000)
-                                            print('Gene ' + dup[1][4] + ',\tstart:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][1] + '- 5000\n')
+                                        if int(dup[1][1]) - CIS_WINDOW >= stored_stop:
+                                            dup[1].append(int(dup[1][1]) - CIS_WINDOW)
+                                            print('Gene ' + dup[1][4] + ',\tstart:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][1] + ' - ' + str(CIS_WINDOW) + '\n')
                                             stored_start = int(dup[1][1])
                                             stroed_stop  = int(dup[1][2])
                                         else:
@@ -277,46 +260,41 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                         else:
                             stored_dup_name   = dup[1][4]
                             stored_dup_strand = dup[1][3]
-                        # print(dup[1][0][1][0])
-                        # print(stored_chr)
+
                             if dup[1][0] == stored_chr:
-                                # print(dup[1][0][1][3])
-                                # print(stored_strand)
+
                                 if dup[1][3] == stored_strand:
                                     if dup[1][3] == '-':
-                                        if int(dup[1][1]) >= int(stored_start)+ 5000:
+                                        if int(dup[1][1]) >= int(stored_start) + CIS_WINDOW:
                                             print('\nAdding preliminary promoter annotation to dup gene 1\n')
-                                            dup[1].append(int(dup[1][2])+ 5000)
+                                            dup[1].append(int(dup[1][2]) + CIS_WINDOW)
                                             stored_dup_start = int(dup[1][2])
                                             stored_dup_stop  = int(dup[1][1])
                                         else:
-                                            print('\nGenes closer than 20kb - editting previous promoter\n')
+                                            print('\nGenes closer than ' + str(CIS_WINDOW) + ' - editting previous promoter\n')
                                             print('\tGene ' + sorted_chrm_list[count-2][1][0][1][4].strip() + ' stop:\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + '\treplaces with ' +  str(dup[1][1]))
                                             print('\t' + str(sorted_chrm_list[count-2]))
                                             sorted_chrm_list[count-2][1][0][1][5] = int(dup[1][1])
                                             print('\t' + str(sorted_chrm_list[count-2]))
                                             print('\nAdding preliminary promoter annotation to dup gene 1\n')
-                                            dup[1].append(int(dup[1][2])+ 5000)
+                                            dup[1].append(int(dup[1][2]) + CIS_WINDOW)
                                             stored_dup_start = int(dup[1][2])
                                             stored_dup_stop  = int(dup[1][1])
                                             print('\n')
 
-                                    elif dup[1][3] == '+' and int(dup[1][1])- 5000 <= 0:
+                                    elif dup[1][3] == '+' and int(dup[1][1]) - CIS_WINDOW <= 0:
                                         dup[1].append(0)
                                         print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with 0')
                                         print('\n')
-
                                         stored_dup_start = int(dup[1][1])
                                         stored_dup_stop  = int(dup[1][2])
                                         stored_dup_prom  = int(dup[1][5])
 
                                     else:
-                                        if int(dup[1][1]) >= int(stored_stop)+ 5000:
-                                            print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + '- 5000')
-                                            dup[1].append(int(dup[1][1])- 5000)
-                                            print('shittywickoot')
+                                        if int(dup[1][1]) >= int(stored_stop) + CIS_WINDOW:
+                                            print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + ' - ' + str(CIS_WINDOW) + '\n')
+                                            dup[1].append(int(dup[1][1]) - CIS_WINDOW)
                                             print('\n')
-
                                             stored_dup_start = int(dup[1][1])
                                             stored_dup_stop  = int(dup[1][2])
                                             stored_dup_prom  = int(dup[1][5])
@@ -325,21 +303,20 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                             if int(dup[1][1]) > int(stored_start) and int(dup[1][2]) < int(stored_stop):
                                                 print('Duplicate start site nested within previous gene - promoter not annotated')
                                                 remove_list.append(dup[1][4])
-
                                                 stored_dup_start = int(dup[1][1])
                                                 stored_dup_stop  = int(dup[1][2])
+
                                             elif int(dup[1][1]) < int(stored_start):
                                                 print('Duplicate start site overlaps previous gene on same strand - promoter not annotated')
                                                 remove_list.append(dup[1][4])
-
                                                 stored_dup_start = int(dup[1][1])
                                                 stored_dup_stop  = int(dup[1][2])
+
                                             else:
                                                 if int(dup[1][1]) - int(stored_stop) > 0:
                                                     print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + ' - ' + str(int(dup[1][1]) - int(stored_stop)))
                                                     dup[1].append(int(stored_stop))
                                                     print('\n')
-
                                                     stored_dup_start = int(dup[1][1])
                                                     stored_dup_stop  = int(dup[1][2])
                                                     stored_dup_prom  = int(dup[1][5])
@@ -347,28 +324,23 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                 else:
                                                     print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\toverlaps previous stop: ' + str(stored_stop) + '. No promoter annotated.\n')
                                                     remove_list.append(dup[1][4])
-
                                                     stored_dup_start = int(dup[1][1])
                                                     stored_dup_stop  = int(dup[1][2])
 
-
                                 elif dup[1][3] != stored_strand:
-                                    # print (dup[1][3] + ' ' +stored_strand)
+
                                     if dup[1][3] == '+':
                                         if int(dup[1][1]) < int(stored_start) and int(dup[1][2]) > int(stored_stop):
                                             print('\tRemoving duplicate start site gene 1 as overlapping/nested within previous gene\n')
                                             remove_list.append(dup[1][4])
-
                                             stored_dup_start = int(dup[1][1])
                                             stored_dup_stop  = int(dup[1][2])
 
                                             print('\tAlso removing previous gene on -ve strand due to overlap\n\n')
                                             remove_list.append(sorted_chrm_list[count-2][1][0][1][4])
+
                                         else:
-                                            if (stored_start + 5000) > int(dup[1][1]) and stored_start < int(dup[1][2]):
-                                                # print(dup)
-                                                # print(stored_start + 5000)
-                                                # print(int(dup[1][1]))
+                                            if (stored_start + CIS_WINDOW) > int(dup[1][1]) and stored_start < int(dup[1][2]):
                                                 dist = int(dup[1][1]) - stored_start
                                                 print('Stored start:\t' + str(stored_start))
                                                 print('Querey start:\t' + str(dup[1][1]))
@@ -385,7 +357,6 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                     continue
 
                                                 else:
-                                                    # print(sorted_chrm_list[count-2])
                                                     print('Allowed promoter region is\t' + str(int(dist/2)))
 
                                                     print('Gene ' + str(sorted_chrm_list[count-2][1][0][1][4]) + ',\tstop:\t' + str(sorted_chrm_list[count-2][1][0][1][5]) + '\treplaces with ' + str(sorted_chrm_list[count-2][1][0][1][2]) + ' + ' + str(int(dist/2)))
@@ -397,7 +368,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                     stored_dup_prom  = int(dup[1][5])
                                                     print('\n')
 
-                                            elif int(dup[1][1])- 5000 <= 0:
+                                            elif int(dup[1][1]) - CIS_WINDOW <= 0:
                                                 dup[1].append(0)
                                                 print('Gene ' + dup[1][4].strip() + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with 0')
                                                 stored_dup_start = int(dup[1][1])
@@ -406,15 +377,15 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                 print('\n')
 
                                             else:
-                                                if int(dup[1][1])- 5000 >= int(stored_stop):
-                                                    print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + '- 5000')
-                                                    gene[1][0][1].append(int(dup[1][1])- 5000)
+                                                if int(dup[1][1]) - CIS_WINDOW >= int(stored_stop):
+                                                    print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + ' - ' + str(CIS_WINDOW) + '\n')
+                                                    gene[1][0][1].append(int(dup[1][1]) - CIS_WINDOW)
                                                     stored_dup_start = int(dup[1][1])
                                                     stored_dup_stop  = int(dup[1][2])
                                                     stored_dup_prom  = int(dup[1][5])
                                                     # print(str(gene[1][0][1]))
                                                 else:
-                                                    print('\nGenes closer than 20kb - taking shorter promoter\n')
+                                                    print('\nGenes closer than ' + str(CIS_WINDOW) + ' - taking shorter promoter\n')
                                                     print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + str(stored_stop))
                                                     dup[1].append(int(stored_stop))
                                                     stored_dup_start = int(dup[1][1])
@@ -422,8 +393,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                     stored_dup_prom  = int(dup[1][5])
 
                                     else:
-                                        dup[1].append(int(dup[1][2])+ 5000)
-                                        print('Gene ' + dup[1][4] + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][2] + '+ 5000')
+                                        dup[1].append(int(dup[1][2]) + CIS_WINDOW)
+                                        print('Gene ' + dup[1][4] + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with ' + dup[1][2] + ' + ' + str(CIS_WINDOW) + '\n')
                                         print('\n')
                                         stored_dup_start = int(dup[1][2])
                                         stored_dup_stop  = int(dup[1][1])
@@ -432,7 +403,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                             elif dup[1][0] != stored_chr:
                                 print('First of two start site duplicates is at the start of a new scaffold...\n')
                                 if dup[1][3] == '+':
-                                    if int(dup[1][1])- 5000 <= 0:
+                                    if int(dup[1][1]) - CIS_WINDOW <= 0:
                                         dup[1].append(0)
                                         print('Gene ' + dup[1][4].strip() + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with 0')
                                         stored_dup_start = int(dup[1][1])
@@ -441,8 +412,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
 
                                         print('\n')
                                     else:
-                                        dup[1].append(int(dup[1][1])- 5000)
-                                        print('Gene ' + dup[1][4].strip() + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with ' + str(dup[1][1]) + '- 5000\n')
+                                        dup[1].append(int(dup[1][1]) - CIS_WINDOW)
+                                        print('Gene ' + dup[1][4].strip() + ',\tstop:\t' + str(dup[1][1]) + ',\treplaces with ' + str(dup[1][1]) + ' - ' + str(CIS_WINDOW) + '\n')
                                         stored_dup_start = int(dup[1][1])
                                         stored_dup_stop  = int(dup[1][2])
                                         stored_dup_prom  = int(dup[1][5])
@@ -451,40 +422,33 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
 
                 else:
                     print('--- On gene =\t' + gene[1][0][0] + ' ' + gene[1][0][1][3])
-                    print(gene)
 
                     count = count + 1
-                    # print(gene[1][0][1][0])
-                    # print(stored_chr)
+
                     if gene[1][0][1][0] == stored_chr:
-                        # print(gene[1][0][1][3])
-                        # print(stored_strand)
+
                         if gene[1][0][1][3] == stored_strand:
+
                             if gene[1][0][1][3] == '-':
+
                                 if int(gene[1][0][1][2]) == int(stored_start) and int(gene[1][0][1][1]) == int(stored_stop):
 
                                     print('\n' + str(gene))
                                     print(stored_start)
-                                    print('\n\n\nExact duplicate gene on dif strand error -  manually consult...\n\n\n')
+                                    print('\n\n\nExact duplicate gene discovered on opposite strand - manually consult annotation...\n\n\n')
                                     sys.exit()
-                                # print(int(gene[1][0][1][2]) + 5000)#MARK
-                                # print(str(gene[1][0][1]))
-                                # print(stored_start)
-                                # print(stored_stop)
 
-                                print('Gene ' + gene[1][0][1][4].strip() + ' stop:\t' + str(gene[1][0][1][2]) + '\treplaces with ' + gene[1][0][1][2] + ' + 5000')
-                                gene[1][0][1].append(int(gene[1][0][1][2]) + 5000)
+                                print('Gene ' + gene[1][0][1][4].strip() + ' stop:\t' + str(gene[1][0][1][2]) + '\treplaces with ' + gene[1][0][1][2] + ' + ' + str(CIS_WINDOW) + '\n')
+                                gene[1][0][1].append(int(gene[1][0][1][2]) + CIS_WINDOW)
 
-                                if int(gene[1][0][1][1]) >= int(stored_start) + 5000:
+                                if int(gene[1][0][1][1]) >= int(stored_start) + CIS_WINDOW:
 
                                     stored_start = int(gene[1][0][1][2])
                                     stored_stop  = int(gene[1][0][1][1])
+
                                 else:
 
-                                    print('\nGenes closer than 20kb - editting previous promoter\n')
-                                    # print(gene)
-                                    # print(sorted_chrm_list[count-1])
-                                    # print(sorted_chrm_list[count-2])
+                                    print('\nGenes closer than ' + str(CIS_WINDOW) + ' - editting previous promoter\n')
 
                                     if len(sorted_chrm_list[count-2][1]) == 1:
 
@@ -501,22 +465,18 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                             stored_stop  = int(gene[1][0][1][1])
 
                                         else:
-                                            # print(len(sorted_chrm_list))
-                                            # print(sorted_chrm_list[count-2][1][0][0])
-                                            # print(gene[1][0][1][4])
+
                                             if gene[1][0][1][4] not in remove_list:
+
                                                 if sorted_chrm_list[count-2][1][0][0] not in remove_list:
 
                                                     print('\tGene ' + sorted_chrm_list[count-2][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + '\treplaces with ' +  gene[1][0][1][1])
-                                                    print('\t' + str(sorted_chrm_list[count-2]))
-                                                    print('\t' + str(len(sorted_chrm_list[count-2][1][0][1])))
 
                                                     if len(sorted_chrm_list[count-2][1][0][1]) == 6:
                                                         sorted_chrm_list[count-2][1][0][1][5] = int(gene[1][0][1][1])
                                                     else:
                                                         sorted_chrm_list[count-2][1][0][1].append(gene[1][0][1][1])
 
-                                                    # print('\t' + str(sorted_chrm_list[count-2]))
                                                     if sorted_chrm_list[count-2][1][0][1][4] not in remove_list:
                                                         stored_start = int(gene[1][0][1][2])
                                                         stored_stop  = int(gene[1][0][1][1])
@@ -529,7 +489,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                     elif len(sorted_chrm_list[count-2][1]) == 2:
                                         if sorted_chrm_list[count-2][1][1][1][3] == gene[1][0][1][3]:
                                             print('\tGene ' + sorted_chrm_list[count-2][1][1][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][1][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
-                                            # print('\t' + str(sorted_chrm_list[count-2]))
+
                                             try:
                                                 sorted_chrm_list[count-2][1][1][1][5] = int(gene[1][0][1][1])
                                             except(IndexError):
@@ -537,17 +497,17 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                 sorted_chrm_list[count-2][1][1][1].append(int(gene[1][0][1][1]))
                                         else:
                                             print('\tGene ' + sorted_chrm_list[count-2][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
-                                            # print('\t' + str(sorted_chrm_list[count-2]))
+
                                             try:
                                                 sorted_chrm_list[count-2][1][0][1][5] = int(gene[1][0][1][1])
                                             except(IndexError):
                                                 print('\n\t!!! Missing annotation appended...\n')
                                                 sorted_chrm_list[count-2][1][0][1].append(int(gene[1][0][1][1]))
-                                        # print('\t' + str(sorted_chrm_list[count-2]))
-
                                         stored_start = int(gene[1][0][1][2])
                                         stored_stop  = int(gene[1][0][1][1])
+
                                 print('\n')
+
                             elif gene[1][0][1][3] == '+':
 
                                 if stored_start == 0:
@@ -560,46 +520,46 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
 
                                 else:
 
-                                    if int(gene[1][0][1][1])- 5000 >= int(stored_stop):
-                                        print('Gene ' + gene[1][0][1][4].strip() + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with ' + gene[1][0][1][1] + '- 5000')
-                                        gene[1][0][1].append(int(gene[1][0][1][1]) - 5000)
+                                    if int(gene[1][0][1][1]) - CIS_WINDOW >= int(stored_stop):
+                                        print('Gene ' + gene[1][0][1][4].strip() + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with ' + gene[1][0][1][1] + ' - ' + str(CIS_WINDOW) + '\n')
+                                        gene[1][0][1].append(int(gene[1][0][1][1]) - CIS_WINDOW)
                                         stored_start = int(gene[1][0][1][1])
                                         stored_stop  = int(gene[1][0][1][2])
                                         strand_skip = '@'
-                                        # print(str(gene[1][0][1]))
+
                                     elif int(stored_stop) > int(gene[1][0][1][1]) > int(stored_start):
                                         print('Gene nested or overlapping previous gene on same strand - promoter not annotated\n')
                                         remove_list.append(gene[1][0][1][4])
 
                                     else:
 
-                                        print('\nGenes closer than 20kb - taking shorter promoter\n')
+                                        print('\nGenes closer than ' + str(CIS_WINDOW) + ' - taking shorter promoter\n')
 
                                         print('Gene ' + gene[1][0][1][4].strip() + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with ' + gene[1][0][1][1] + ' - ' + str(int(gene[1][0][1][1]) - int(stored_stop)))
 
                                         gene[1][0][1].append(int(stored_stop))
                                         stored_start = int(gene[1][0][1][1])
                                         stored_stop  = int(gene[1][0][1][2])
-                                        # print(str(gene[1][0][1]))
                                         strand_skip = '@'
+
                                     print('\n')
+
                                 stored_strand = gene[1][0][1][3]
 
                         elif gene[1][0][1][3] != stored_strand:
                             print ('Current strand: '+ gene[1][0][1][3] + ' | Stored strand: ' + stored_strand)
+
                             if gene[1][0][1][3] == '+':
-                                print('is ' + str(int(stored_start) + 5000) + ' > ' + str(gene[1][0][1][1]))
-                                print('is ' + str(stored_start) + ' < ' + str(int(gene[1][0][1][2])))
-                                print(int(gene[1][0][1][1]))
-                                if int(stored_start + 5000) > int(gene[1][0][1][1]) and stored_start < int(gene[1][0][1][2]):
+
+                                if int(stored_start + CIS_WINDOW) > int(gene[1][0][1][1]) and stored_start < int(gene[1][0][1][2]):
                                     dist = int(gene[1][0][1][1]) - int(stored_start)
                                     print('Stored start:\t' + str(stored_start))
                                     print('Querey start:\t' + str(gene[1][0][1][1]))
                                     print('The distance between the genes is:\t' + str(dist))
 
                                     if dist <= 1:
-
                                         print('\nOverlapping gene - promoter not annotated')
+
                                         remove_list.append(gene[1][0][1][4])
                                         print('Also removing previous promoter annotation due to overlap')
                                         remove_list.append(sorted_chrm_list[count-2][1][0][1][4])
@@ -615,9 +575,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                         print('Allowed promoter region is\t' + str(int(dist/2)))
 
                                         if len(sorted_chrm_list[count-2][1]) == 1:
-
                                             print('Gene ' + str(sorted_chrm_list[count-2][1][0][1][4].strip()) + '  stop:  ' + str(sorted_chrm_list[count-2][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + ' + ' + str(int(dist/2)))
-                                            # print(sorted_chrm_list[count-2])
                                             print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
                                             gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
                                             print(int(sorted_chrm_list[count-2][1][0][1][2]) + int(dist/2))
@@ -629,9 +587,9 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                         elif len(sorted_chrm_list[count-2][1]) == 2:
 
                                             if dup[1][3] != sorted_chrm_list[count-2][1][0][1][3]:
+
                                                 try:
                                                     print('Gene ' + str(sorted_chrm_list[count-2][1][0][1][4]) + '  stop:  ' + str(sorted_chrm_list[count-2][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + ' + ' + str(int(dist/2)))
-                                                    # print(sorted_chrm_list[count-2])
                                                 except(IndexError):
                                                     print('\n\t!!! Missing annotation appended to dup 1...\n')
                                                     sorted_chrm_list[count-2][1][0][1].append(int(sorted_chrm_list[count-2][1][0][1][2]) + int(dist/2))
@@ -642,7 +600,6 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                     print('\n\t!!! Missing annotation appended to dup 2...\n')
                                                     sorted_chrm_list[count-2][1][1][1].append(int(sorted_chrm_list[count-2][1][1][1][2]) + int(dist/2))
 
-                                            # print(sorted_chrm_list[count-2])
                                             print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
                                             gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
 
@@ -656,46 +613,44 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                             print('\n')
                                         strand_skip  = '@'
 
-                                elif int(gene[1][0][1][1]) - 5000 <= 0:
+                                elif int(gene[1][0][1][1]) - CIS_WINDOW <= 0:
 
                                     if int(gene[1][0][1][1]) - int(stored_stop) > 0:
                                         gene[1][0][1].append(0)
-                                        print('Gene ' + gene[1][0][1][4].strip() + ', start:\t' + str(gene[1][0][1][1]) + ',\treplaces with 0\n')
+                                        print('Gene ' + gene[1][0][1][4].strip() + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with 0\n')
                                         stored_start = int(gene[1][0][1][1])
                                         print('\n')
+
                                     else:
                                         remove_list.append(gene[1][0][1][4])
                                         print('Gene overlapping previous on negative strand - promoter not annotated\n')
 
                                     strand_skip  = '@'
 
-                                elif int(stored_start + 5000) > int(gene[1][0][1][1]) and int(stored_start) >= int(gene[1][0][1][2]):
+                                elif int(stored_start + CIS_WINDOW) > int(gene[1][0][1][1]) and int(stored_start) >= int(gene[1][0][1][2]):
                                     print('Gene nested within another - promoter not annotated')
                                     remove_list.append(gene[1][0][1][4])
                                     strand_skip = stored_strand
                                     print('\n')
+
                                 else:
-                                    gene[1][0][1].append(int(gene[1][0][1][1])- 5000)
-                                    print('Gene ' + gene[1][0][1][4].strip() + ', start:\t' + str(gene[1][0][1][1]) + ',\treplaces with ' + gene[1][0][1][1] + '- 5000')
-                                    print('pop')
+                                    gene[1][0][1].append(int(gene[1][0][1][1]) - CIS_WINDOW)
+                                    print('Gene ' + gene[1][0][1][4].strip() + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with ' + gene[1][0][1][1] + ' - ' + str(CIS_WINDOW) + '\n')
                                     stored_start = int(gene[1][0][1][1])
                                     stored_stop  = int(gene[1][0][1][2])
                                     strand_skip  = '@'
                                     print('\n')
 
                             else:
-                                gene[1][0][1].append(int(gene[1][0][1][2])+ 5000)
-                                print('Gene ' + gene[1][0][1][4].strip() + ', stop:\t' + str(gene[1][0][1][2]) + ',\treplaces with ' + gene[1][0][1][2] + '+ 5000')
+                                gene[1][0][1].append(int(gene[1][0][1][2]) + CIS_WINDOW)
+                                print('Gene ' + gene[1][0][1][4].strip() + ' stop:\t' + str(gene[1][0][1][2]) + '\treplaces with ' + gene[1][0][1][2] + ' + ' + str(CIS_WINDOW) + '\n')
 
-                                if strand_skip == gene[1][0][1][3] and int(stored_start)+ 5000 > int(gene[1][0][1][1]):
+                                if strand_skip == gene[1][0][1][3] and int(stored_start) + CIS_WINDOW > int(gene[1][0][1][1]):
 
-                                    print('\nGene prior to nested genes closer than 20kb - editting previous promoter\n')
+                                    print('\nGene prior to nested genes closer than ' + str(CIS_WINDOW) + ' - editting previous promoter\n')
 
                                     if len(sorted_chrm_list[count-2][1]) == 1:
 
-                                        print(stored_start)
-                                        print(str(stored_stop) + '\n')
-                                        print(str(gene[1][0][1]) + '\n')
                                         if int(stored_start) > int(gene[1][0][1][2]) > int(stored_stop):
                                             print('Gene nested or overlapping previous gene on same strand - promoter not annotated\n')
                                             remove_list.append(gene[1][0][1][4])
@@ -703,28 +658,23 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                         if int(gene[1][0][1][2]) > int(stored_start) > int(gene[1][0][1][1]):
                                             print('Previous gene nested or overlapping previous gene on same strand - promoter annotation removed\n')
                                             remove_list.append(sorted_chrm_list[count-2][1][0][1][4])
-                                            print(str(remove_list))
 
                                         else:
-                                            print(strand_skip)
 
                                             if sorted_chrm_list[count-2][1][0][1][4] in remove_list:
                                                 print('\tGene ' + sorted_chrm_list[count-3][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-3][1][0][1][2]) + '\treplaces with ' +  gene[1][0][1][1])
-                                                print('\t' + str(sorted_chrm_list[count-2]))
                                                 strand_skip = '@'
 
                                             elif sorted_chrm_list[count-3][1][0][1][4] not in remove_list:
                                                 print('\tGene ' + sorted_chrm_list[count-3][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-3][1][0][1][2]) + '\treplaces with ' +  gene[1][0][1][1])
-                                                # print('\t' + str(sorted_chrm_list[count-2]))
                                                 sorted_chrm_list[count-3][1][0][1][5] = int(gene[1][0][1][1])
-                                                # print('\t' + str(sorted_chrm_list[count-2]))
                                                 strand_skip = '@'
+
                                             elif sorted_chrm_list[count-4][1][0][1][4] not in remove_list:
                                                 print('\tGene ' + sorted_chrm_list[count-3][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-4][1][0][1][2]) + '\treplaces with ' +  gene[1][0][1][1])
-                                                # print('\t' + str(sorted_chrm_list[count-2]))
                                                 sorted_chrm_list[count-4][1][0][1][5] = int(gene[1][0][1][1])
-                                                # print('\t' + str(sorted_chrm_list[count-2]))
                                                 strand_skip = '@'
+
                                             else:
                                                 print('\n\n\nToooo much nesting - this script cannot handle the level of gene overlap in the annotation provided\n\n\n')
                                                 sys.exit()
@@ -732,7 +682,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                     elif len(sorted_chrm_list[count-2][1]) == 2:
                                         if sorted_chrm_list[count-2][1][1][1][3] == gene[1][0][1][3]:
                                             print('\tGene ' + sorted_chrm_list[count-2][1][1][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][1][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
-                                            # print('\t' + str(sorted_chrm_list[count-2]))
+
                                             try:
                                                 sorted_chrm_list[count-2][1][1][1][5] = int(gene[1][0][1][1])
                                             except(IndexError):
@@ -740,41 +690,44 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
                                                 sorted_chrm_list[count-2][1][1][1].append(int(gene[1][0][1][1]))
                                         else:
                                             print('\tGene ' + sorted_chrm_list[count-2][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
-                                            # print('\t' + str(sorted_chrm_list[count-2]))
+
                                             try:
                                                 sorted_chrm_list[count-2][1][0][1][5] = int(gene[1][0][1][1])
                                             except(IndexError):
                                                 print('\n\t!!! Missing annotation appended...\n')
                                                 sorted_chrm_list[count-2][1][0][1].append(int(gene[1][0][1][1]))
-                                        # print('\t' + str(sorted_chrm_list[count-2]))
 
                                 print('\n')
+
                                 stored_start = int(gene[1][0][1][2])
                                 stored_stop  = int(gene[1][0][1][1])
+
                             stored_strand = gene[1][0][1][3]
+
                     elif gene[1][0][1][0] != stored_chr:
-                        print(gene[1][0][1][4])
-                        # print(stored_chr)
+
                         if gene[1][0][1][3] == '-':
-                            print('Gene ' + gene[1][0][1][4] + ', stop:\t' + str(gene[1][0][1][2]) + ',\treplaces with ' + gene[1][0][1][2] + '+ 5000')
-                            gene[1][0][1].append(int(gene[1][0][1][2])+ 5000)
+                            print('Gene ' + gene[1][0][1][4] + ' stop:\t' + str(gene[1][0][1][2]) + '\treplaces with ' + gene[1][0][1][2] + ' + ' + str(CIS_WINDOW) + '\n')
+                            gene[1][0][1].append(int(gene[1][0][1][2])+ CIS_WINDOW)
                             stored_start  = int(gene[1][0][1][2])
                             stored_stop   = int(gene[1][0][1][1])
                             stored_strand = gene[1][0][1][3]
-                        elif gene[1][0][1][3] == '+' and int(gene[1][0][1][1])- 5000 <= 0:
+
+                        elif gene[1][0][1][3] == '+' and int(gene[1][0][1][1]) - CIS_WINDOW <= 0:
                             gene[1][0][1].append(0)
-                            print('Gene ' + gene[1][0][1][4] + ', start:\t' + str(gene[1][0][1][1]) + ',\treplaces with 0')
+                            print('Gene ' + gene[1][0][1][4] + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with 0')
                             stored_start = int(gene[1][0][1][1])
                             stored_stop  = int(gene[1][0][1][2])
+
                         else:
-                            print('Gene ' + gene[1][0][1][4] + ', start:\t' + str(gene[1][0][1][1]) + ',\treplaces with '+ gene[1][0][1][1] + '- 5000')
-                            gene[1][0][1].append(int(gene[1][0][1][1]) - 5000)
+                            print('Gene ' + gene[1][0][1][4] + ' start:\t' + str(gene[1][0][1][1]) + '\treplaces with '+ gene[1][0][1][1] + ' - ' + str(CIS_WINDOW) + '\n')
+                            gene[1][0][1].append(int(gene[1][0][1][1]) - CIS_WINDOW)
                             stored_start = int(gene[1][0][1][1])
                             stored_stop  = int(gene[1][0][1][2])
 
                         stored_chr = gene[1][0][1][0]
 
-            with open(os.path.join(OUTPUT_DIR, filename[:-3] + '5Kb_cisRegions.stranded.bed'), 'w') as out_file:
+            with open(os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + '_cisRegions.stranded.bed'), 'w') as out_file:
 
                 for bit in sorted_chrm_list:
 
@@ -824,10 +777,10 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS):
         for out in same_strand_start:
             if out not in remove_list:
                 out2.write(str(out) + '\n')
-    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + '5Kb_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
+    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + '_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
 
 
-def main(GENE_BED, GENOME_FASTA, OUTPUT_DIR):
+def main(GENE_BED, GENOME_FASTA, ntWINDOW, OUTPUT_DIR):
     print('\n\ncisRegion.py\n\n')
     print('Loading annotations from:\t' + GENE_BED)
     print('Loading sequences from:\t' + GENOME_FASTA)
@@ -835,25 +788,22 @@ def main(GENE_BED, GENOME_FASTA, OUTPUT_DIR):
 
     # create a list of scaffold IDs
     scaffold_set = scaffoldLister(GENE_BED)
-    # print(sorted(scaffold_set))
 
     # create a dictionary of the lengths of all scaffolds
     scaff_limits = chromLimitFind(scaffold_set, genomeLoad(GENOME_FASTA))
-    # for chr, lim in sorted(scaff_limits.items()):
-    #     print(chr + '\t' + str(lim))
 
     #call cis regions - to be updated
-    hugeCisRegionCallingBehmoth(scaffold_set, GENE_BED, OUTPUT_DIR, scaff_limits)
-
+    hugeCisRegionCallingBehmoth(scaffold_set, GENE_BED, OUTPUT_DIR, scaff_limits, ntWINDOW)
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('BED_in',   type=str, help='path to promoter annotation in .BED format')
 parser.add_argument('FASTA_in', type=str, help='path to genome sequences in .FASTA format')
+parser.add_argument('WINDOW',   type=int, help='integer value describing nucleotide length of max cis region to be extracted')
 parser.add_argument('OUT_dir',  type=str, help='path to directory where the output should be written')
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.BED_in, args.FASTA_in, args.OUT_dir)
+    main(args.BED_in, args.FASTA_in, args.WINDOW, args.OUT_dir)
