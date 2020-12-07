@@ -34,9 +34,10 @@ Snakemake: `Köster J, Rahmann S. “Snakemake - A scalable bioinformatics workf
 
 Bedtools: `Quinlan AR, Hall IM. BEDTools: a flexible suite of utilities for comparing genomic features. Bioinformatics. 2010 Mar 15;26(6):841-2. <https://academic.oup.com/bioinformatics/article/26/6/841/244688>`_
 
-Indices and tables
-==================
+****************
+Acknowledgements
+****************
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+EMotEP would not be useable without
+
+GTRD: `GTRD: a database on gene transcription regulation—2019 update <https://doi.org/10.1093/nar/gky1128>`_, `Database Website <https://gtrd.biouml.org/>`_
