@@ -27,8 +27,6 @@ Scripts
 
 The custom scripts used in the pipeline are described below:
 
-|
-
 .. autoprogram:: workflow.scripts.cisRegion:parser
    :prog: cisRegion.py
 

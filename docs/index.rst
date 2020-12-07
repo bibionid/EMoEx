@@ -40,4 +40,6 @@ Acknowledgements
 
 EMotEP would not be useable without
 
-GTRD: `GTRD: a database on gene transcription regulation—2019 update <https://doi.org/10.1093/nar/gky1128>`_, `Database Website <https://gtrd.biouml.org/>`_
+Gene transcription regulation Database:
+`GTRD: a database on gene transcription regulation—2019 update <https://doi.org/10.1093/nar/gky1128>`_
+`Database Website <https://gtrd.biouml.org/>`_

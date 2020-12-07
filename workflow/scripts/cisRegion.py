@@ -801,7 +801,7 @@ def main(GENE_BED, GENOME_FASTA, ntWINDOW, OUTPUT_DIR):
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('BED_in',   type=str, help='path to promoter annotation in .BED format')
+parser.add_argument('BED_in',   type=str, help='path to cisRegion annotation in .BED format')
 parser.add_argument('FASTA_in', type=str, help='path to genome sequences in .FASTA format')
 parser.add_argument('WINDOW',   type=int, help='integer value describing nucleotide length of max cis region to be extracted')
 parser.add_argument('OUT_dir',  type=str, help='path to directory where the output should be written')
