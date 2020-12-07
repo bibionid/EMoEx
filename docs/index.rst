@@ -24,7 +24,15 @@ genomes but no regulatory motif annotations.
    usage
    output
 
+************
+Dependencies
+************
 
+EMotEP uses the following softwares:
+
+Snakemake: 'Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012. <https://bioinformatics.oxfordjournals.org/content/28/19/2520>'_
+
+Bedtools: 'Quinlan AR, Hall IM. BEDTools: a flexible suite of utilities for comparing genomic features. Bioinformatics. 2010 Mar 15;26(6):841-2. <https://academic.oup.com/bioinformatics/article/26/6/841/244688>'_
 
 Indices and tables
 ==================
