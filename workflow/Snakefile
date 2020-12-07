@@ -1,4 +1,13 @@
-import os
+##############################################################################
+##Earlham Motif Extrapolation Pipeline (EMotEP)
+##Snakefile
+##
+##A Pipeline to lift over putative binding site predicitons from ChIP-seq data
+##
+##Will Nash
+##Github: https://github.com/bibionid/
+##will.nash@earlham.ac.uk
+##############################################################################
 
 configfile: "config/emotep_config.yaml"
 
@@ -10,11 +19,14 @@ script_dir = "workflow/scripts"
 shell.suffix("; sleep 30")
 shell.prefix("set -e; set -o pipefail; ")
 
+# Define all outputs
 rule all:
     input:
         expand("{OUTPUT_DIR}/cisRegions.bed", OUTPUT_DIR = output_dir),
-        expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir)
+        expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir)
 
+#Use gene annotations to call user deifined cis regions
 rule callCisRegions:
     input:
         TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation'],
@@ -26,6 +38,7 @@ rule callCisRegions:
     shell:
         "python3 {script_dir}/cisRegion.py {input.TARGET_GENE_ANNOTATIONS} {input.TARGET_GENOME_SEQUENCES} {params.CIS_REGION} {wildcards.OUTPUT_DIR}"
 
+#Plot the distribution of the length regions extracted
 rule visualiseCisRegionLengthDist:
     input:
         CIS_REGION_ANNOTATION = "{OUTPUT_DIR}/cisRegions.bed"
@@ -33,3 +46,13 @@ rule visualiseCisRegionLengthDist:
         "{OUTPUT_DIR}/cisRegions_lengthDist.pdf"
     shell:
         "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"
+
+#Extract the sequences in FASTA format, reverse complement -ve strand cisRegions
+rule extractCisRegionSequences:
+    input:
+        CIS_REGION_ANNOTATION   = "{OUTPUT_DIR}/cisRegions.bed",
+        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
+    output:
+        "{OUTPUT_DIR}/cisRegions.fasta"
+    shell:
+        "bedtools getfasta -fi {input.TARGET_GENOME_SEQUENCES} -bed {input.CIS_REGION_ANNOTATION} -fo {output} -s -name"
