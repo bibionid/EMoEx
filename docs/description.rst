@@ -1,5 +1,6 @@
+###########
 Description
-===========
+###########
 
 .. toctree::
    :maxdepth: 2
@@ -21,8 +22,9 @@ and then the sequences extracted from the input genome using `bedtools getfasta`
 |
 |
 
+•••••••
 Scripts
-^^^^^^^
+•••••••
 The custom scripts used in the pipeline are described below:
 |
 .. autoprogram:: workflow.scripts.cisRegion:parser
