@@ -1,1 +1,1 @@
-__all__ = ['promBED_fromGeneBED_20kbHardCoded_figures']
+__all__ = ['cisRegion', 'cisRegion_displot']

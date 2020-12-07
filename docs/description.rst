@@ -5,9 +5,14 @@ Description
    :maxdepth: 2
    :caption: Desc:
 
-This is the pipieline
+This is the pipeline
+
+
 
 Scripts
 ^^^^^^^
-.. autoprogram:: workflow.scripts.promBED_fromGeneBED_20kbHardCoded_figures:parser
-   :prog: promBED_fromGeneBED_20kbHardCoded_figures.py
+.. autoprogram:: workflow.scripts.cisRegion:parser
+   :prog: cisRegion.py
+
+.. autoprogram:: workflow.scripts.cisRegion_displot:parser
+   :prog: cisRegion_displot.py
