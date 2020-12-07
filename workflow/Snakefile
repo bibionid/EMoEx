@@ -32,4 +32,4 @@ rule visualiseCisRegionLengthDist:
     output:
         "{OUTPUT_DIR}/cisRegions_lengthDist.pdf"
     shell:
-        "python3 {script_dir}/promBED_fromGeneBED_20kbHardCoded_figures.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"
+        "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"

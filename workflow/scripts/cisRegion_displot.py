@@ -1,26 +1,29 @@
 #!/usr/bin/python
-'''
-This script will make a distribution plot from the bedfile genereated by promBED_fromGeneBED_20kbHardCoded.py
-'''
-import os
-import sys
-import csv
-import time
-import argparse
-# import statistics
 
-import numpy as np
+'''
+cisRegion_displot.py
+
+This script will make a distribution plot from the bedfile genereated by cisRegion.py
+
+'''
+
+#import libraries
+import csv
+import argparse
+
+import numpy   as np
 import pandas  as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+#Define custom functions
 def parseBEDinput (bed_infile):
     '''
-    read annotations from bed file into dictionary
+    Read annotations from bed file into dictionary
 
-    load dictionary as pandas DataFrame
+    Load dictionary as pandas DataFrame
 
-    return both
+    Return both
     '''
     #create blank dictionary
     bed_dict = {}
@@ -50,7 +53,7 @@ def parseBEDinput (bed_infile):
 
 def main (inBED, out_path):
     '''
-    poopy
+    Uses the seaborn library to plot the distribution of the cisRegion lengths
     '''
     #parse the annotations in BED format
     BedAnnotData = parseBEDinput(inBED)
@@ -77,11 +80,12 @@ def main (inBED, out_path):
 
     figure.savefig(out_path + '/cisRegions_lengthDist.pdf')
 
-    print('\nAnnotation size distribution plot written to: ' + out_path + '/Om_5kbRegions_lengthDist.pdf\n')
+    print('\nAnnotation size distribution plot written to: ' + out_path + '/cisRegions_lengthDist.pdf\n')
 
+#Define arguments used in the script
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('BED_in', type=str, help='path to promoter annotation in BED format')
+parser.add_argument('BED_in',  type=str, help='path to promoter annotation in BED format')
 parser.add_argument('out_dir', type=str, help='path to directory where the figure should be written')
 
 if __name__ == '__main__':
@@ -89,3 +93,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.BED_in, args.out_dir)
+
+__author__ = "Will Nash"
+__copyright__ = "Copyright 2020, The Earlham Institute"
+__credits__ = ["Will Nash", "Wilfried Haerty"]
+__license__ = "GPLv3"
+__version__ = "1.0"
+__maintainer__ = "Will Nash"
+__email__ = "will.nash@earlham.ac.uk"
+__status__ = "Testing"

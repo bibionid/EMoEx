@@ -7,7 +7,7 @@ outdir: outputs
 test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
 
 #nucleotide length of the cis regions to be targeted by the pipeline
-cis_region: 250
+cis_region: 5000
 
 target_genome:
   annotation: inputs/test.bed

@@ -780,13 +780,14 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
             if out not in remove_list:
                 out2.write(str(out) + '\n')
     # print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + 'nt_cisRegions.stranded.bed') + '\n\t' + os.path.join(OUTPUT_DIR, filename[:-3] + 'same_strand+start.out') + '\n\n')
-    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, cisRegions.bed') + '\n\t' + os.path.join(OUTPUT_DIR, 'same_strand+start.out') + '\n\n')
+    print('\n\n\nOutputs:\n\t' + os.path.join(OUTPUT_DIR, 'cisRegions.bed') + '\n\t' + os.path.join(OUTPUT_DIR, 'same_strand+start.out') + '\n\n')
 
 
 def main(GENE_BED, GENOME_FASTA, ntWINDOW, OUTPUT_DIR):
     print('\n\ncisRegion.py\n\n')
     print('Loading annotations from:\t' + GENE_BED)
-    print('Loading sequences from:\t' + GENOME_FASTA)
+    print('Loading sequences from:\t'   + GENOME_FASTA)
+    print('Extracting cisRegions of:\t' + GENOME_FASTA + 'nt')
     print('Writing cis annotations to:\t' + OUTPUT_DIR + '\n')
 
     # create a list of scaffold IDs
@@ -810,3 +811,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.BED_in, args.FASTA_in, args.WINDOW, args.OUT_dir)
+
+__author__ = "Will Nash"
+__copyright__ = "Copyright 2020, The Earlham Institute"
+__credits__ = ["Will Nash", "Wilfried Haerty"]
+__license__ = "GPLv3"
+__version__ = "1.0"
+__maintainer__ = "Will Nash"
+__email__ = "will.nash@earlham.ac.uk"
+__status__ = "Testing"
