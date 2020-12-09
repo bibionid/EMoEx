@@ -144,3 +144,4 @@ cython_debug/
 # Development of EMotEP
 inputs/
 outputs/
+Om_work/

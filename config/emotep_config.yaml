@@ -10,8 +10,12 @@ test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_Hig
 cis_region: 5000
 
 target_genome:
-  annotation: inputs/test.bed
-  sequences:  inputs/Oreochromis_mossambicus_EIV1.shortScaffoldID.singleLine.fasta
+  annotation: inputs/Drosophila_melanogaster.BDGP6.28.49.protein_coding.bed
+  sequences:  inputs/Drosophila_melanogaster.BDGP6.28.dna.toplevel.singleLine.simpleNames.fa
+
+reference_genome:
+  annotation: inputs/Drosophila_melanogaster.BDGP6.28.49.protein_coding.bed
+  sequences:  inputs/Drosophila_melanogaster.BDGP6.28.dna.toplevel.fa
 
 # genome_sequences:
 #   hg38: data/Homo_sapiens.GRCh38.dna.primary_assembly_singleLine.fa
