@@ -51,7 +51,12 @@ def chromLimitFind (chrom_set, genomeFastaDict):
     '''
     chrLim_dict = {}
     for chrom in chrom_set:
-        chrLim_dict[chrom] = len(genomeFastaDict[chrom])
+        try:
+            chrLim_dict[chrom] = len(genomeFastaDict[chrom])
+        except KeyError :
+            print ('Scaffold', chrom, 'not in fasta - omitting')
+            pass
+
     return(chrLim_dict)
 
 
@@ -164,12 +169,12 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                             if d_c > 0:
 
                                 if dup[1][4] in same_strand_start:
-                                    print('\t' + str(dup[1][4]) + ' is a start site same strand duplicate - mirroring promoter')
+                                    print('\t' + str(dup[1][4]) + ' is a start site same strand duplicate - mirroring promoter\n')
                                     if stored_dup_prom == '@':
                                         print('\nNo stored promoter to mirror - annotation not recorded\n')
                                         remove_list.append(dup[1][4])
                                     else:
-                                        dup[1].append(stored_dup_prom)####
+                                        dup[1].append(stored_dup_prom)
 
                                     if dup[1][3] == '+':
                                         if int(dup[1][2]) > int(stored_stop) and int(dup[1][1]) < int(stored_start):
@@ -320,6 +325,12 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
 
                                         else:
                                             if int(dup[1][1]) >= int(stored_stop) + CIS_WINDOW:
+                                                print(stored_strand)
+                                                print(stored_start)
+                                                print(stored_stop)
+                                                print(stored_start - 5000)
+                                                print(stored_stop - 5000)
+
                                                 print('Gene ' + dup[1][4] + ' start:\t' + str(dup[1][1]) + '\treplaces with ' + dup[1][1] + ' - ' + str(CIS_WINDOW) + '\n')
                                                 dup[1].append(int(dup[1][1]) - CIS_WINDOW)
                                                 print('\n')
@@ -481,6 +492,8 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                                     print('Gene ' + gene[1][0][1][4].strip() + ' stop:\t' + str(gene[1][0][1][2]) + '\treplaces with ' + gene[1][0][1][2] + ' + ' + str(CIS_WINDOW) + '\n')
                                     gene[1][0][1].append(int(gene[1][0][1][2]) + CIS_WINDOW)
 
+                                    strand_skip = '@'
+
                                     if int(gene[1][0][1][1]) >= int(stored_start) + CIS_WINDOW:
 
                                         stored_start = int(gene[1][0][1][2])
@@ -613,14 +626,43 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                                             print('Allowed promoter region is\t' + str(int(dist/2)))
 
                                             if len(sorted_chrm_list[count-2][1]) == 1:
-                                                print('Gene ' + str(sorted_chrm_list[count-2][1][0][1][4].strip()) + '  stop:  ' + str(sorted_chrm_list[count-2][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + ' + ' + str(int(dist/2)))
-                                                print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
-                                                gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
 
-                                                sorted_chrm_list[count-2][1][0][1][5] = int(sorted_chrm_list[count-2][1][0][1][2]) + int(dist/2)
-                                                stored_start = int(gene[1][0][1][1])
-                                                stored_stop  = int(gene[1][0][1][2])
-                                                print('\n')
+                                                if strand_skip == '@':
+                                                    print('Gene ' + str(sorted_chrm_list[count-2][1][0][1][4].strip()) + '  stop:  ' + str(sorted_chrm_list[count-2][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + ' + ' + str(int(dist/2)))
+                                                    print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
+                                                    gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
+
+                                                    sorted_chrm_list[count-2][1][0][1][5] = int(sorted_chrm_list[count-2][1][0][1][2]) + int(dist/2)
+                                                    stored_start = int(gene[1][0][1][1])
+                                                    stored_stop  = int(gene[1][0][1][2])
+                                                    print('\n')
+                                                else:
+                                                    print(strand_skip)
+                                                    try:
+                                                        print('PREVIOUS Gene ' + str(sorted_chrm_list[count-nesting_counter][1][0][1][4].strip()) + '  stop:  ' + str(sorted_chrm_list[count-nesting_counter][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-nesting_counter][1][0][1][2]) + ' + ' + str(int(dist/2)))
+                                                        print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
+                                                        gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
+
+                                                        sorted_chrm_list[count-nesting_counter][1][0][1][5] = int(sorted_chrm_list[count-nesting_counter][1][0][1][2]) + int(dist/2)
+                                                        stored_start = int(gene[1][0][1][1])
+                                                        stored_stop  = int(gene[1][0][1][2])
+                                                        print('\n')
+                                                    except IndexError:
+                                                        print(str(sorted_chrm_list[count-4][1][0][1][4].strip()))
+                                                        print(str(sorted_chrm_list[count-3][1][0][1][4].strip()))
+                                                        print(str(sorted_chrm_list[count-2][1][0][1][4].strip()))
+                                                        print(count)
+                                                        print(nesting_counter)
+                                                        print(str(sorted_chrm_list[count-nesting_counter][1][0][1][4].strip()))
+                                                        print('fooked')
+                                                        # print('PREVIOUS Gene ' + str(sorted_chrm_list[count-4][1][0][1][4].strip()) + '  stop:  ' + str(sorted_chrm_list[count-4][1][0][1][5]) + '\treplaces with\t' + str(sorted_chrm_list[count-3][1][0][1][2]) + ' + ' + str(int(dist/2)))
+                                                        # print('Gene ' + gene[1][0][1][4] + ' start:  ' + str(gene[1][0][1][1]) + '\treplaces with\t' + str(gene[1][0][1][1]) + ' - ' + str(int(dist/2)))
+                                                        # gene[1][0][1].append(int(gene[1][0][1][1]) - int(dist/2))
+                                                        #
+                                                        # sorted_chrm_list[count-4][1][0][1][5] = int(sorted_chrm_list[count-4][1][0][1][2]) + int(dist/2)
+                                                        # stored_start = int(gene[1][0][1][1])
+                                                        # stored_stop  = int(gene[1][0][1][2])
+                                                        # print('\n')
 
                                             elif len(sorted_chrm_list[count-2][1]) > 1:
 
@@ -672,6 +714,11 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                                     elif int(stored_start + CIS_WINDOW) > int(gene[1][0][1][1]) and int(stored_start) >= int(gene[1][0][1][2]):
                                         print('Gene nested within another - promoter not annotated')
                                         remove_list.append(gene[1][0][1][4])
+                                        if strand_skip == '@':
+                                            nesting_counter = 3
+                                        else:
+                                            nesting_counter = nesting_counter + 1
+                                        print(nesting_counter)
                                         strand_skip = stored_strand
                                         print('\n')
 
@@ -723,6 +770,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
 
                                         elif len(sorted_chrm_list[count-2][1]) == 2:
                                             if sorted_chrm_list[count-2][1][1][1][3] == gene[1][0][1][3]:
+
                                                 print('\tGene ' + sorted_chrm_list[count-2][1][1][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][1][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
 
                                                 try:
@@ -731,20 +779,23 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
                                                     print('\n\t!!! Missing annotation appended...\n')
                                                     sorted_chrm_list[count-2][1][1][1].append(int(gene[1][0][1][1]))
                                             else:
-                                                print('\tGene ' + sorted_chrm_list[count-2][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-2][1][0][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
+                                                print('\tGene ' + sorted_chrm_list[count-(2+len(sorted_chrm_list[count-2][1]))][1][0][1][4] + ' stop:\t' + str(sorted_chrm_list[count-(2+len(sorted_chrm_list[count-2][1]))][1][0][1][2]) + '\t + replaces with ' +  gene[1][0][1][1])
 
                                                 try:
-                                                    sorted_chrm_list[count-2][1][0][1][5] = int(gene[1][0][1][1])
+                                                    sorted_chrm_list[count-(2+len(sorted_chrm_list[count-2][1]))][1][0][1][5] = int(gene[1][0][1][1])
                                                 except(IndexError):
                                                     print('\n\t!!! Missing annotation appended...\n')
-                                                    sorted_chrm_list[count-2][1][0][1].append(int(gene[1][0][1][1]))
+                                                    sorted_chrm_list[count-(2+len(sorted_chrm_list[count-2][1]))][1][0][1].append(int(gene[1][0][1][1]))
 
                                     print('\n')
 
                                     stored_start = int(gene[1][0][1][2])
                                     stored_stop  = int(gene[1][0][1][1])
 
-                                stored_strand = gene[1][0][1][3]
+                                if strand_skip == '@':
+                                    stored_strand = gene[1][0][1][3]
+                                else:
+                                    stored_strand = strand_skip
 
                         elif gene[1][0][1][0] != stored_chr:
 

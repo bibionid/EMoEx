@@ -4,14 +4,12 @@ workdir: .
 #directory where all outputs of the pipeline will be written
 outdir: outputs
 
-test_input: inputs/OREMO8127_EIv1.0.annotation.shortScaffoldID.proteinCoding_HighConf.5Kb_cisRegions.stranded.bed
-
 #nucleotide length of the cis regions to be targeted by the pipeline
 cis_region: 5000
 
 target_genome:
-  annotation: inputs/Drosophila_melanogaster.BDGP6.28.49.protein_coding.bed
-  sequences:  inputs/Drosophila_melanogaster.BDGP6.28.dna.toplevel.singleLine.simpleNames.fa
+  annotation: inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.gff.protein_coding.bed
+  sequences:  inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.fna.singleLine.simpleHeader
 
 reference_genome:
   annotation: inputs/Drosophila_melanogaster.BDGP6.28.49.protein_coding.bed
