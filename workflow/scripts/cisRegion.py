@@ -73,7 +73,14 @@ def scaffoldLister(BED_IN):
     chr_set = set(chr_list)
     return(chr_set)
 
-def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_WINDOW):
+def outputFormat(output, scaffold, start, stop, gene_id, gene_strand):
+    '''
+    write coordinates to output in bed format
+    '''
+    print('Keeping: ' + '\t'.join([str(scaffold), str(start),str(stop), str(gene_id),'1', str(gene_strand)]))
+    output.write('\t'.join([str(scaffold), str(start),str(stop), str(gene_id),'1', str(gene_strand) + '\n']))
+
+def hugeCisRegionCallingBehemoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_WINDOW):
     '''
     This highly repetitive function works to call cis regions upstream of
     annotated genes. It excludes cis regions that overlap coding sequence. It
@@ -142,6 +149,7 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
             stored_chr      = '@'
             stored_strand   = '+'
             strand_skip     = '@'
+            # with open(os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + 'nt_cisRegions.stranded.bed'), 'w') as out_file:
             with open(os.path.join(OUTPUT_DIR, 'cisRegions.bed'), 'a') as out_file:
                 for gene in sorted_chrm_list:
 
@@ -820,47 +828,89 @@ def hugeCisRegionCallingBehmoth(SCAF_LIST, BED_IN, OUTPUT_DIR, SCAFF_LIMS, CIS_W
 
                             stored_chr = gene[1][0][1][0]
 
-                # with open(os.path.join(OUTPUT_DIR, filename[:-3] + str(CIS_WINDOW) + 'nt_cisRegions.stranded.bed'), 'w') as out_file:
-                #Old location of the with write
-
                 for stored_cisRegion_coords in sorted_chrm_list:
 
                     if len(stored_cisRegion_coords[1]) > 1:
+
                         for duplicate_cisRegion_coords in stored_cisRegion_coords[1]:
+
                             if duplicate_cisRegion_coords[1][4] not in remove_list:
-                                print('Keeping: ' + str(duplicate_cisRegion_coords))
+
+                                # print('Keeping: ' + str(duplicate_cisRegion_coords))
+
                                 if duplicate_cisRegion_coords[1][3] == '+':
-                                    out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][5])) + '\t' + str(duplicate_cisRegion_coords[1][1]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
+
+                                    if int(duplicate_cisRegion_coords[1][1]) - int(duplicate_cisRegion_coords[1][5]) != 0:
+                                        #out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][5])) + '\t' + str(duplicate_cisRegion_coords[1][1]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
+                                        outputFormat(out_file, duplicate_cisRegion_coords[1][0], duplicate_cisRegion_coords[1][5], duplicate_cisRegion_coords[1][1], duplicate_cisRegion_coords[0], duplicate_cisRegion_coords[1][3])
+
+                                    else:
+
+                                        print('--- ' + str(duplicate_cisRegion_coords[0]) + ' removed as ZERO LENGTH' + '\t' + duplicate_cisRegion_coords[1][3] + '\t' + duplicate_cisRegion_coords[1][1] + '\t' + duplicate_cisRegion_coords[1][2])
+                                        remove_list.append(duplicate_cisRegion_coords[0])
+
                                 elif duplicate_cisRegion_coords[1][3] == '-':
 
                                     if int(duplicate_cisRegion_coords[1][5]) > int(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]):
 
-                                        print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(duplicate_cisRegion_coords[1][5]) + ' to ' + str(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]) + '\n\n\n')
+                                        if int(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]) - int(duplicate_cisRegion_coords[1][2]) != 0:
 
-                                        out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][2])) + '\t' + str(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
+                                            print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(duplicate_cisRegion_coords[1][5]) + ' to ' + str(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]) + '\n\n\n')
+
+                                            # out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][2])) + '\t' + str(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
+                                            outputFormat(out_file, duplicate_cisRegion_coords[1][0], duplicate_cisRegion_coords[1][2], str(SCAFF_LIMS[duplicate_cisRegion_coords[1][0]]), duplicate_cisRegion_coords[0], duplicate_cisRegion_coords[1][3])
+                                        else:
+                                            print('--- ' + str(duplicate_cisRegion_coords[0]) + ' removed as ZERO LENGTH AND END OF SCAFF' + '\t' + duplicate_cisRegion_coords[1][3] + '\t' + duplicate_cisRegion_coords[1][1] + '\t' + duplicate_cisRegion_coords[1][2])
+                                            remove_list.append(duplicate_cisRegion_coords[0])
+
+                                    elif int(duplicate_cisRegion_coords[1][5]) - int(duplicate_cisRegion_coords[1][2]) != 0:
+                                        # out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][2])) + '\t' + str(duplicate_cisRegion_coords[1][5]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
+                                        outputFormat(out_file, duplicate_cisRegion_coords[1][0], duplicate_cisRegion_coords[1][2], duplicate_cisRegion_coords[1][5], duplicate_cisRegion_coords[0], duplicate_cisRegion_coords[1][3])
 
                                     else:
+                                        print('--- ' + str(duplicate_cisRegion_coords[0]) + ' removed as ZERO LENGTH' + '\t' + duplicate_cisRegion_coords[1][3] + '\t' + duplicate_cisRegion_coords[1][1] + '\t' + duplicate_cisRegion_coords[1][2])
+                                        remove_list.append(duplicate_cisRegion_coords[0])
 
-                                        out_file.write(duplicate_cisRegion_coords[1][0] + '\t' + str(int(duplicate_cisRegion_coords[1][2])) + '\t' + str(duplicate_cisRegion_coords[1][5]) + '\t' + str(duplicate_cisRegion_coords[0]) + '\t1\t' + str(duplicate_cisRegion_coords[1][3]) + '\n')
                             else:
                                 print('--- ' + str(duplicate_cisRegion_coords[1][4]) + ' removed' + '\t' + duplicate_cisRegion_coords[1][3] + '\t' + duplicate_cisRegion_coords[1][1] + '\t' + duplicate_cisRegion_coords[1][2])
                     else:
 
                         if stored_cisRegion_coords[1][0][1][4] not in remove_list:
 
-                            print('Keeping: ' + str(stored_cisRegion_coords))
+                            # print('Keeping: ' + str(stored_cisRegion_coords))
+
                             if stored_cisRegion_coords[1][0][1][3] == '+':
-                                out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][5]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+
+                                if int(stored_cisRegion_coords[1][0][1][1]) - int(stored_cisRegion_coords[1][0][1][5]) != 0:
+                                    # out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][5]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+                                    outputFormat(out_file, stored_cisRegion_coords[1][0][1][0], stored_cisRegion_coords[1][0][1][5], stored_cisRegion_coords[1][0][1][1], stored_cisRegion_coords[1][0][1][4].strip(), stored_cisRegion_coords[1][0][1][3].strip())
+
+                                else:
+
+                                    print('--- ' + str(stored_cisRegion_coords[1][0][1][4]) + ' removed as ZERO LENGTH' + '\t' + str(stored_cisRegion_coords[1][0][1][3]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]))
+
 
                             elif stored_cisRegion_coords[1][0][1][3] == '-':
 
                                 if int(stored_cisRegion_coords[1][0][1][5]) > int(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]):
-                                    print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(stored_cisRegion_coords[1][0][1][5]) + ' to ' + str(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]) + '\n\n\n')
 
-                                    out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]) + '\t' + str(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+                                    if int(stored_cisRegion_coords[1][0][1][2]) - int(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]) != 0:
+                                        print('\n\n\n END OF SCAFF REACHED  -- CLIPPING STOP ANNOT FROM ' + str(stored_cisRegion_coords[1][0][1][5]) + ' to ' + str(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]) + '\n\n\n')
+                                        # out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]) + '\t' + str(SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+                                        outputFormat(out_file, stored_cisRegion_coords[1][0][1][0], stored_cisRegion_coords[1][0][1][2], SCAFF_LIMS[stored_cisRegion_coords[1][0][1][0]], stored_cisRegion_coords[1][0][1][4].strip(), stored_cisRegion_coords[1][0][1][3].strip())
+
+                                    else:
+                                        print('--- ' + str(stored_cisRegion_coords[1][0][1][4]) + ' removed as ZERO LENGTH AT END OF SCAFF' + '\t' + str(stored_cisRegion_coords[1][0][1][3]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]))
+                                        remove_list.append(stored_cisRegion_coords[1][0][1][4])
+
+                                elif int(stored_cisRegion_coords[1][0][1][2]) - stored_cisRegion_coords[1][0][1][5] != 0:
+                                    # out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]) + '\t' + str(stored_cisRegion_coords[1][0][1][5]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+                                    outputFormat(out_file, stored_cisRegion_coords[1][0][1][0], stored_cisRegion_coords[1][0][1][2], stored_cisRegion_coords[1][0][1][5], stored_cisRegion_coords[1][0][1][4].strip(), stored_cisRegion_coords[1][0][1][3].strip())
 
                                 else:
-                                    out_file.write(str(stored_cisRegion_coords[1][0][1][0]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]) + '\t' + str(stored_cisRegion_coords[1][0][1][5]) + '\t' + str(stored_cisRegion_coords[1][0][1][4].strip()) + '\t1\t' + str(stored_cisRegion_coords[1][0][1][3].strip()) + '\n')
+
+                                    print('--- ' + str(stored_cisRegion_coords[1][0][1][4]) + ' removed as ZERO LENGTH' + '\t' + str(stored_cisRegion_coords[1][0][1][3]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]))
+                                    remove_list.append(stored_cisRegion_coords[1][0][1][4])
                         else:
                             print('--- ' + str(stored_cisRegion_coords[1][0][1][4]) + ' removed' + '\t' + str(stored_cisRegion_coords[1][0][1][3]) + '\t' + str(stored_cisRegion_coords[1][0][1][1]) + '\t' + str(stored_cisRegion_coords[1][0][1][2]))
 
@@ -887,7 +937,7 @@ def main(GENE_BED, GENOME_FASTA, ntWINDOW, OUTPUT_DIR):
     scaff_limits = chromLimitFind(scaffold_set, genomeLoad(GENOME_FASTA))
 
     #call cis regions - to be updated
-    hugeCisRegionCallingBehmoth(scaffold_set, GENE_BED, OUTPUT_DIR, scaff_limits, ntWINDOW)
+    hugeCisRegionCallingBehemoth(scaffold_set, GENE_BED, OUTPUT_DIR, scaff_limits, ntWINDOW)
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 

@@ -17,10 +17,10 @@ of protein coding genes.
 
 The pipeline will take target and reference genomes and uses the
 ``sequencePrep.sh`` and ``annotationPrep.sh`` scripts to parse this infromation
-from ensemble or ncbi formats into those required for later EMotEP scripts. 
+from ensemble or ncbi formats into those required for later EMotEP scripts.
 
 Taking the target species genome and annotation as input, ``cisRegion.py``
-creates an annotation of a user defined region upstream of each gene in the
+creates an annotation of a user-defined region upstream of each gene in the
 annotation provided. The distribution of these regions is plotted by
 ``cisRegion_displot.py`` and then the sequences extracted from the input genome
 using ``bedtools getfasta``
