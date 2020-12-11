@@ -1,4 +1,18 @@
 #!/bin/bash -e
+##
+## annotPrep.sh
+##
+## extracts 'gene' lines from whole genome annotations in gff/gff3 format. These
+## lines are then searched for 'biotype=protein' annotations. The format is them
+## converted to a modified .bed through a series of awk and sed calls.
+##
+## The output of this script is 6 column .bed format with a 7th column describing
+## describing gene name.
+##
+## Will Nash
+## Github: https://github.com/bibionid/
+## will.nash@earlham.ac.uk
+
 
 INPUT_ANNOTATION=$1
 

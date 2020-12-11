@@ -22,15 +22,35 @@ shell.prefix("set -e; set -o pipefail; ")
 # Define all outputs
 rule all:
     input:
+        expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences']),
+        expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation']),
         expand("{OUTPUT_DIR}/cisRegions.bed", OUTPUT_DIR = output_dir),
         expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir),
         expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir)
 
-#Use gene annotations to call user deifined cis regions
+# Prepare genome sequences for the pipeline
+rule sequencePrep:
+    input:
+        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
+    output:
+        expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences'])
+    shell:
+        "bash {script_dir}/sequencePrep.sh {input.TARGET_GENOME_SEQUENCES}"
+
+#convert gff/gff3 annotation to modified bed
+rule annotPrep:
+    input:
+        TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation']
+    output:
+        expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
+    shell:
+        "bash {script_dir}/annotationPrep.sh {input.TARGET_GENE_ANNOTATIONS}"
+
+# Use gene annotations to call user deifined cis regions
 rule callCisRegions:
     input:
-        TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation'],
-        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences'],
+        TARGET_GENOME_SEQUENCES = expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences']),
+        TARGET_GENE_ANNOTATIONS = expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
     params:
         CIS_REGION = config['cis_region']
     output:
@@ -38,7 +58,7 @@ rule callCisRegions:
     shell:
         "python3 {script_dir}/cisRegion.py {input.TARGET_GENE_ANNOTATIONS} {input.TARGET_GENOME_SEQUENCES} {params.CIS_REGION} {wildcards.OUTPUT_DIR}"
 
-#Plot the distribution of the length regions extracted
+# Plot the distribution of the length regions extracted
 rule visualiseCisRegionLengthDist:
     input:
         CIS_REGION_ANNOTATION = "{OUTPUT_DIR}/cisRegions.bed"

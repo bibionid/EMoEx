@@ -8,9 +8,9 @@ outdir: outputs
 cis_region: 5000
 
 target_genome:
-  annotation: inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.gff.protein_coding.bed
-  sequences:  inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.fna.singleLine.simpleHeader
-
+  annotation: inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.gff
+  sequences:  inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.fna
+  
 reference_genome:
   annotation: inputs/Drosophila_melanogaster.BDGP6.28.49.protein_coding.bed
   sequences:  inputs/Drosophila_melanogaster.BDGP6.28.dna.toplevel.fa
