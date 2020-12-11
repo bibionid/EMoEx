@@ -14,7 +14,7 @@ The pipeline works by extracting putative, user defined, regulatory regions from
 
 ### Pipeline Digram
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/PlaceholderLC.png" alt="By CC0 Public Domain Dedication - https://creativecommons.org/publicdomain/zero/1.0/, CC0, https://commons.wikimedia.org/w/index.php?curid=72025515" width="200"/>
+<img src="https://github.com/bibionid/EMotEP/blob/working_version/docs/dag.png" width="200"/>
 
 ## Acknowledgments
 
