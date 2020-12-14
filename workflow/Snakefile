@@ -64,8 +64,10 @@ rule visualiseCisRegionLengthDist:
         CIS_REGION_ANNOTATION = "{OUTPUT_DIR}/cisRegions.bed"
     output:
         "{OUTPUT_DIR}/cisRegions_lengthDist.pdf"
+    conda:
+        "envs/emotep.yaml"
     shell:
-        "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"
+        "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}" #source activate /ei/software/testing/python_miniconda/4.9.2_py3.8_wn/x86_64/envs/emotep_hpc/
 
 #Extract the sequences in FASTA format, reverse complement -ve strand cisRegions
 rule extractCisRegionSequences:
@@ -74,5 +76,7 @@ rule extractCisRegionSequences:
         TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
     output:
         "{OUTPUT_DIR}/cisRegions.fasta"
+    conda:
+        "envs/emotep.yaml"
     shell:
         "bedtools getfasta -fi {input.TARGET_GENOME_SEQUENCES} -bed {input.CIS_REGION_ANNOTATION} -fo {output} -s -name"
