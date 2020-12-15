@@ -1,3 +1,14 @@
+##############################################################################
+##Earlham Motif Extrapolation Pipeline (EMotEP)
+##Snakefile
+##
+##A Pipeline to lift over putative binding site predicitons from ChIP-seq data
+##
+##Will Nash
+##Github: https://github.com/bibionid/
+##will.nash@earlham.ac.uk
+##############################################################################
+
 configfile: "config/emotep_config.yaml"
 
 work_dir   = config["workdir"]
@@ -5,27 +16,63 @@ output_dir = config["outdir"]
 
 script_dir = "workflow/scripts"
 
-print(work_dir)
-
 shell.suffix("; sleep 30")
 shell.prefix("set -e; set -o pipefail; ")
 
-
+# Define all outputs
 rule all:
     input:
-        expand("{OUTPUT_DIR}/input1.txt", OUTPUT_DIR = output_dir),
-        expand("{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf", OUTPUT_DIR = output_dir)
+        expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences']),
+        expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation']),
+        expand("{OUTPUT_DIR}/cisRegions.bed", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir)
 
-rule compute1:
+# Prepare genome sequences for the pipeline
+rule sequencePrep:
+    input:
+        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
     output:
-        "{OUTPUT_DIR}/input1.txt"
+        expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences'])
     shell:
-        "touch {output}"
+        "bash {script_dir}/sequencePrep.sh {input.TARGET_GENOME_SEQUENCES}"
 
+#convert gff/gff3 annotation to modified bed
+rule annotPrep:
+    input:
+        TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation']
+    output:
+        expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
+    shell:
+        "bash {script_dir}/annotationPrep.sh {input.TARGET_GENE_ANNOTATIONS}"
+
+# Use gene annotations to call user deifined cis regions
+rule callCisRegions:
+    input:
+        TARGET_GENOME_SEQUENCES = expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences']),
+        TARGET_GENE_ANNOTATIONS = expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
+    params:
+        CIS_REGION = config['cis_region']
+    output:
+        "{OUTPUT_DIR}/cisRegions.bed"
+    shell:
+        "python3 {script_dir}/cisRegion.py {input.TARGET_GENE_ANNOTATIONS} {input.TARGET_GENOME_SEQUENCES} {params.CIS_REGION} {wildcards.OUTPUT_DIR}"
+
+# Plot the distribution of the length regions extracted
 rule visualiseCisRegionLengthDist:
     input:
-        CIS_REGION_ANNOTATION = config["test_input"]
+        CIS_REGION_ANNOTATION = "{OUTPUT_DIR}/cisRegions.bed"
     output:
-        "{OUTPUT_DIR}/Om_5kbRegions_lengthDist.pdf"
+        "{OUTPUT_DIR}/cisRegions_lengthDist.pdf"
     shell:
-        "python3 {script_dir}/promBED_fromGeneBED_20kbHardCoded_figures.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"
+        "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}"
+
+#Extract the sequences in FASTA format, reverse complement -ve strand cisRegions
+rule extractCisRegionSequences:
+    input:
+        CIS_REGION_ANNOTATION   = "{OUTPUT_DIR}/cisRegions.bed",
+        TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
+    output:
+        "{OUTPUT_DIR}/cisRegions.fasta"
+    shell:
+        "bedtools getfasta -fi {input.TARGET_GENOME_SEQUENCES} -bed {input.CIS_REGION_ANNOTATION} -fo {output} -s -name"
