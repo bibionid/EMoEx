@@ -32,6 +32,8 @@ rule all:
 rule sequencePrep:
     input:
         TARGET_GENOME_SEQUENCES = config['target_genome']['sequences']
+    conda:
+        "envs/emotep.yaml"
     output:
         expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['target_genome']['sequences'])
     shell:
@@ -41,6 +43,8 @@ rule sequencePrep:
 rule annotPrep:
     input:
         TARGET_GENE_ANNOTATIONS = config['target_genome']['annotation']
+    conda:
+        "envs/emotep.yaml"
     output:
         expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
     shell:
@@ -53,6 +57,8 @@ rule callCisRegions:
         TARGET_GENE_ANNOTATIONS = expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation'])
     params:
         CIS_REGION = config['cis_region']
+    conda:
+        "envs/emotep.yaml"
     output:
         "{OUTPUT_DIR}/cisRegions.bed"
     shell:
@@ -69,7 +75,7 @@ rule visualiseCisRegionLengthDist:
     shell:
         "python3 {script_dir}/cisRegion_displot.py {input.CIS_REGION_ANNOTATION} {wildcards.OUTPUT_DIR}" #source activate /ei/software/testing/python_miniconda/4.9.2_py3.8_wn/x86_64/envs/emotep_hpc/
 
-#Extract the sequences in FASTA format, reverse complement -ve strand cisRegions
+# Extract the sequences in FASTA format, reverse complement -ve strand cisRegions
 rule extractCisRegionSequences:
     input:
         CIS_REGION_ANNOTATION   = "{OUTPUT_DIR}/cisRegions.bed",
@@ -80,3 +86,5 @@ rule extractCisRegionSequences:
         "envs/emotep.yaml"
     shell:
         "bedtools getfasta -fi {input.TARGET_GENOME_SEQUENCES} -bed {input.CIS_REGION_ANNOTATION} -fo {output} -s -name"
+
+# 

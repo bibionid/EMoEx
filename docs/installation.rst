@@ -3,6 +3,10 @@ Installation
 
 EMotEP source code: `Github <https://github.com/bibionid/EMotEP>`_
 
+Requires:
+- miniconda with python3
+- snakemake
+
 To install the pipeline follow these steps:
 
 1. Clone workflow into working directory

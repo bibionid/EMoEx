@@ -1,0 +1,38 @@
+name: emotep_GTRD_bigbed
+channels:
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1
+  - blas=1.0
+  - ca-certificates=2020.12.8
+  - certifi=2020.12.5
+  - intel-openmp=2020.2
+  - krb5=1.18.2
+  - ld_impl_linux-64=2.33.1
+  - libcurl=7.71.1
+  - libedit=3.1.20191231
+  - libffi=3.3
+  - libgcc-ng=9.1.0
+  - libssh2=1.9.0
+  - libstdcxx-ng=9.1.0
+  - mkl=2020.2
+  - mkl-service=2.3.0
+  - mkl_fft=1.2.0
+  - mkl_random=1.1.1
+  - ncurses=6.2
+  - numpy=1.19.2
+  - numpy-base=1.19.2
+  - openssl=1.1.1i
+  - pip=20.3.1
+  - pybigwig=0.3.17
+  - python=3.7.9
+  - readline=8.0
+  - setuptools=51.0.0
+  - six=1.15.0
+  - sqlite=3.33.0
+  - tk=8.6.10
+  - wheel=0.36.2
+  - xz=5.2.5
+  - zlib=1.2.11
+prefix: /ei/software/testing/python_miniconda/4.9.2_py3.8_wn/x86_64/envs/emotep_GTRD_bigbed
