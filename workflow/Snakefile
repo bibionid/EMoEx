@@ -19,6 +19,11 @@ script_dir = "workflow/scripts"
 shell.suffix("; sleep 30")
 shell.prefix("set -e; set -o pipefail; ")
 
+import os
+
+gtrd_bb  = "inputs/dmel_inputs/GTRD_INPUT/7UP1_P16375_Meta-clusters_1408.bb"
+gtrd_bed = os.path.basename(gtrd_bb).replace('.bb', '.bed')
+
 # Define all outputs
 rule all:
     input:
@@ -26,7 +31,10 @@ rule all:
         expand("{INPUT_ANNOT}.protein_coding.bed", INPUT_ANNOT = config['target_genome']['annotation']),
         expand("{OUTPUT_DIR}/cisRegions.bed", OUTPUT_DIR = output_dir),
         expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir),
-        expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir)
+        expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir),
+        expand("{OUTPUT_DIR}/GTRD_BED/{GTRD_BIGBED_FILE}",OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3_upstream", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3_downstream", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed)
 
 # Prepare genome sequences for the pipeline
 rule sequencePrep:
@@ -87,4 +95,35 @@ rule extractCisRegionSequences:
     shell:
         "bedtools getfasta -fi {input.TARGET_GENOME_SEQUENCES} -bed {input.CIS_REGION_ANNOTATION} -fo {output} -s -name"
 
-# 
+# Prepare the GTRD binding event information for further steps
+rule prepareGTRDraw:
+    input:
+        GTRD_BIGBED = gtrd_bb,
+        GTRD_SCHEMA = 'inputs/dmel_inputs/dmel6_GTRD20-06_trackDb.txt',
+        REFERENCE_GENE_ANNOTATIONS = config['reference_genome']['annotation']
+    output:
+        "{OUTPUT_DIR}/GTRD_BED/{GTRD_BIGBED_FILE}"
+    conda:
+        "envs/emotep_GTRD_bigbed.yaml" #differnet conda env as pyBigWig uses python 3.7
+    shell:
+        "python3 {script_dir}/GTRD_parse_bigBed.py {input.GTRD_BIGBED} {input.GTRD_SCHEMA} {input.REFERENCE_GENE_ANNOTATIONS} {wildcards.OUTPUT_DIR}"
+
+# Extract the genes within a 10kb window around binding event, find closest up and down stream
+rule extractClosestGenes:
+    input:
+        BINDING_EVENT_ANNOTATIONS  = "{OUTPUT_DIR}/GTRD_BED/{GTRD_BIGBED_FILE}",
+        REFERENCE_GENE_ANNOTATIONS = config['reference_genome']['annotation']
+    output:
+        STEP_ONE = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed"),
+        STEP_TWO = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed2"),
+        STEP_THR = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed2.sorted"),
+        UPSTREAM   = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.upstream_genes",
+        DOWNSTREAM = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.downstream_genes"
+    conda:
+        "envs/emotep.yaml"
+    shell:
+        "bedtools window -w 10000 -a {input.BINDING_EVENT_ANNOTATIONS} -b {input.REFERENCE_GENE_ANNOTATIONS} > {output.STEP_ONE} \
+        && cut -f6- {output.STEP_ONE} > {output.STEP_TWO} \
+        && sort -k1,1 -k2,2n {output.STEP_TWO} > {output.STEP_THR} \
+        && bedtools closest -io -id -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.UPSTREAM} \
+        && bedtools closest -io -iu -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.DOWNSTREAM}"

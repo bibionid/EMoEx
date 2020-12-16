@@ -6,7 +6,7 @@ GTRD_parse_bigBed.py
 
 This script takes a bigbed file from the GTRD database describing the
 binding events for one transcription factor in a target species and transforms
-to bed format. 
+to bed format.
 
 It also uses the custom reference gene annotation bed used elsewhere in EMotEP
 to retreive the Ensembl id of the transcription factor in the
@@ -108,7 +108,8 @@ def main (BIGBED, trackDB, BED, out_path):
                 start = bindingEvent[0]
                 stop  = bindingEvent[1]
 
-                outfile.write('\t'.join([str(x) for x in [chrom, start, stop, ensembl_id, gene_name]]) + '\n')
+                # correction to chrom id made below with .replace() - this may need alteration for generalisation
+                outfile.write('\t'.join([str(x) for x in [chrom.replace('chr', ''), start, stop, ensembl_id, gene_name]]) + '\n')
 
 # Define arguments used in the script
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
