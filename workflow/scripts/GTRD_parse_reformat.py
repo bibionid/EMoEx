@@ -14,7 +14,7 @@ import os
 import csv
 import argparse
 
-from cisRegion import readFastaGenerator, genomeLoad
+from workflow.scripts.cisRegion import readFastaGenerator, genomeLoad
 
 def main (FASTA, out_file):
     '''
