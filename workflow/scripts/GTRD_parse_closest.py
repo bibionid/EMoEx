@@ -35,27 +35,26 @@ def bed2Dict (BED_in, storage_dict):
                 storage_dict['_'.join(line[:5])].append(line[5:])
 
 
-# def ensemblIDextract (ensemblGeneBed):
-#     '''
-#     use reference annotation to link ensembl ids to gene ids
-#     '''
-#     #blank dict for storage
-#     ensembl_ids = {}
-#
-#     #store ensembl ids in memory
-#     with open(ensemblGeneBed) as reference_bed:
-#         for line in csv.reader(reference_bed, delimiter = '\t'):
-#             if line[6] not in ensembl_ids:
-#                 ensembl_ids[line[6]] = line[3]
-#             else:
-#                 print('duplicate gene id')
-#                 print(line)
-#                 sys.exit()
-#     return(ensembl_ids)
-
-def main (UPSTREAM, DOWNSTREAM, WINDOW, out_path):
+def createOutputLine(in_key, in_vals, output):
     '''
-    main function - to edit
+    Created the modified .bed output line style for this script
+    '''
+    #split up the bindivent coords from the in_key
+    be_coords = in_key.split('_')
+
+    #create an identifier: TF ensemble - TF gene name _ Target Gene ensembl - Target Gene name
+    ident = '_'.join(['-'.join(be_coords[3:]), '-'.join([in_vals[3], in_vals[6]])])
+
+    #create the desired format
+    #event coords, gene strand, identifier
+    output.write('\t'.join(be_coords[:3]) + '\t' + ident + '\t.\t' + in_vals[5] + '\n')
+
+
+def main (UPSTREAM, DOWNSTREAM, WINDOW, out_file):
+    '''
+    Collate the flanking genes by binding event coordinate, then print .bed file
+    output based on the strand and proximity of flanking genes. Binding events
+    with no flanking genes are discarded.
     '''
     # create blank storage dictionary
     bed_closest = {}
@@ -64,58 +63,91 @@ def main (UPSTREAM, DOWNSTREAM, WINDOW, out_path):
     bed2Dict(UPSTREAM, bed_closest)
     bed2Dict(DOWNSTREAM, bed_closest)
 
-    for k, v in bed_closest.items():
-        if len(v) > 2:
-            print(k, '\tskipping due to duplication')
-        elif v[0][0] == '.' and v[1][0] == '.':
-            print(k, '\tskipping due to no closest')
-        else:
-            if v[0][5] == v[1][5]:
-                if v[0][5] == '+':
-                    if int(v[0][7]) <= 0:
-                        if int(v[1][7]) > 2*int(WINDOW):
-                            print(k,'no closest within', str(2*int(WINDOW)))
-                        else:
-                            print(k, '-upstream-', v[1])
-                    else:
-                        print(k, v, 'samesies')
-                else:
-                    if int(v[0][7]) >= 0:
-                        if int(v[0][7]) < 0-(2*int(WINDOW)):
-                            print(k,'no closest within', str(2*int(WINDOW)))
-                        else:
-                            print(k, v[0], '-downstream-')
-                    else:
-                        if abs(int(v[0][7])) < int(int(v[1][7])):
-                            print(k, v[0], '-downstream-')
-                        else:
-                            print(k, '-upstream-', v[1])
+    # open the output
+    with open(out_file, 'w') as OUTPUT:
+        # iterate through the binding event dictionary created above
+        for binding_event_coords, closest_genic_annotations in bed_closest.items():
+            # skip events that have >1 closest gene in either direction
+            if len(closest_genic_annotations) > 2:
+                continue
 
+            # skip events that have no genes within 10kb in either direction
+            elif closest_genic_annotations[0][0] == '.' and closest_genic_annotations[1][0] == '.':
+                continue
+
+            # filter the remaining events
             else:
-                print(k, v, 'differ')
 
-    # load schema dictionary
-    # TF_ID = trackDBparser(trackDB)
+                # if the flanking genes are on the same strand
+                if closest_genic_annotations[0][5] == closest_genic_annotations[1][5]:
 
-    # extract gene name using this schema
-    # gene_name = TF_ID[os.path.basename(BIGBED).split('_')[1]][0]
+                    # if the upstream gene is on the forward strand
+                    if closest_genic_annotations[0][5] == '+':
 
-    #use reference annotation to retreive ensembl id
-    # ensembl_id = ensemblDecoder[gene_name]
+                        # ensure gene downstream event is within range
+                        if int(closest_genic_annotations[1][7]) > 2*int(WINDOW):
+                            continue
+                        else:
+                            # print the .bed line
+                            createOutputLine(binding_event_coords, closest_genic_annotations[1], OUTPUT)
 
-    # open bigbed file
-    # bb = pbw.open(BIGBED)
+                    # if upstream gene is on the reverse strand
+                    else:
 
-    # intergrate this information with coordinates of binding events, write .bed
-    # with open(os.path.join(out_path, 'GTRD_BED', os.path.basename(BIGBED).replace('.bb', '.bed')), 'w') as outfile:
-    #     for chrom, limit in bb.chroms().items():
-    #
-    #         for bindingEvent in bb.entries(chrom, 0, limit):
-    #             start = bindingEvent[0]
-    #             stop  = bindingEvent[1]
-    #
-    #             # correction to chrom id made below with .replace() - this may need alteration for generalisation
-    #             outfile.write('\t'.join([str(x) for x in [chrom.replace('chr', ''), start, stop, ensembl_id, gene_name]]) + '\n')
+                        # ensure gene upstream event is within range
+                        if int(closest_genic_annotations[0][7]) < 0-(2*int(WINDOW)):
+                            continue
+                        else:
+                            # print the .bed line
+                            createOutputLine(binding_event_coords, closest_genic_annotations[0], OUTPUT)
+
+                # if flanking genes are on opposite strands
+                else:
+
+                    # if there is no gene upstream
+                    if closest_genic_annotations[0][6] == '.':
+
+                        # if the downstream gene is forward strand
+                        if closest_genic_annotations[1][5] == '+':
+                            # print the .bed line
+                            createOutputLine(binding_event_coords, closest_genic_annotations[1], OUTPUT)
+                        else:
+                            continue
+
+                    # if there is no gene downstream
+                    elif closest_genic_annotations[1][6] == '.':
+
+                        #if the upstream gene is on the reverse strand
+                        if closest_genic_annotations[0][5] == '-':
+                            # print the .bed line
+                            createOutputLine(binding_event_coords, closest_genic_annotations[0], OUTPUT)
+                        else:
+                            continue
+
+                    #if there are genes both up- and downstream
+                    else:
+
+                        # if the binding event is closer to the upstream gene
+                        if abs(int(closest_genic_annotations[0][7])) < abs(int(closest_genic_annotations[1][7])):
+
+                            # if the upstream gene is reverse strand
+                            if closest_genic_annotations[0][5] == '-':
+                                # print the .bed line
+                                createOutputLine(binding_event_coords, closest_genic_annotations[0], OUTPUT)
+                            else:
+                                # print the .bed line for the downstream gene
+                                createOutputLine(binding_event_coords, closest_genic_annotations[1], OUTPUT)
+
+                        # if the binding event is closer to the downstream gene
+                        else:
+
+                            #if the downstream gene is on the forward strand
+                            if closest_genic_annotations[1][5] == '+':
+                                # print the .bed line
+                                createOutputLine(binding_event_coords, closest_genic_annotations[1], OUTPUT)
+                            else:
+                                # # print the .bed line for the upstream gene
+                                createOutputLine(binding_event_coords, closest_genic_annotations[1], OUTPUT)
 
 # Define arguments used in the script
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
@@ -123,13 +155,13 @@ parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.R
 parser.add_argument('upstream_in',   type=str, help='path to .bed file describing closest upstream genes to each binding event')
 parser.add_argument('downstream_in', type=str, help='path to .bed file describing closest downstream genes to each binding event')
 parser.add_argument('cis_window',    type=int, help='integer value of nt window for putative cis interaction')
-parser.add_argument('out_dir',       type=str, help='path to directory where the figure should be written')
+parser.add_argument('out_file',      type=str, help='File path of the output')
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.upstream_in, args.downstream_in, args.cis_window, args.out_dir)
+    main(args.upstream_in, args.downstream_in, args.cis_window, args.out_file)
 
 __author__ = "Will Nash"
 __copyright__ = "Copyright 2020, The Earlham Institute"

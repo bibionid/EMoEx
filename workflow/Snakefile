@@ -33,8 +33,10 @@ rule all:
         expand("{OUTPUT_DIR}/cisRegions_lengthDist.pdf", OUTPUT_DIR = output_dir),
         expand("{OUTPUT_DIR}/cisRegions.fasta", OUTPUT_DIR = output_dir),
         expand("{OUTPUT_DIR}/GTRD_BED/{GTRD_BIGBED_FILE}",OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
-        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3_upstream", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
-        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3_downstream", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed)
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.upstream_genes", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.downstream_genes", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.fasta", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed)
 
 # Prepare genome sequences for the pipeline
 rule sequencePrep:
@@ -108,7 +110,7 @@ rule prepareGTRDraw:
     shell:
         "python3 {script_dir}/GTRD_parse_bigBed.py {input.GTRD_BIGBED} {input.GTRD_SCHEMA} {input.REFERENCE_GENE_ANNOTATIONS} {wildcards.OUTPUT_DIR}"
 
-# Extract the genes within a 10kb window around binding event, find closest up and down stream
+# Extract the genes within a 10kb window around binding events not within genic space, find closest up- and downstream
 rule extractClosestGenes:
     input:
         BINDING_EVENT_ANNOTATIONS  = "{OUTPUT_DIR}/GTRD_BED/{GTRD_BIGBED_FILE}",
@@ -116,14 +118,45 @@ rule extractClosestGenes:
     output:
         STEP_ONE = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed"),
         STEP_TWO = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed2"),
-        STEP_THR = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed2.sorted"),
+        STEP_THR = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3.sorted"),
+        STEP_THR_US = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3.sorted.US"),
+        STEP_THR_DS = temp("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.itermed.bed3.sorted.DS"),
         UPSTREAM   = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.upstream_genes",
         DOWNSTREAM = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.downstream_genes"
     conda:
         "envs/emotep.yaml"
     shell:
         "bedtools window -w 10000 -a {input.BINDING_EVENT_ANNOTATIONS} -b {input.REFERENCE_GENE_ANNOTATIONS} > {output.STEP_ONE} \
-        && cut -f6- {output.STEP_ONE} > {output.STEP_TWO} \
-        && sort -k1,1 -k2,2n {output.STEP_TWO} > {output.STEP_THR} \
-        && bedtools closest -io -id -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.UPSTREAM} \
-        && bedtools closest -io -iu -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.DOWNSTREAM}"
+        #curate the next .bed file\
+        && cut -f6- {output.STEP_ONE} >  {output.STEP_TWO}\
+        && sort -k1,1 -k2,2n  {output.STEP_TWO} > {output.STEP_THR} \
+        && bedtools closest -io -id -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.STEP_THR_US} \
+        && bedtools intersect -v -a {output.STEP_THR_US} -b {input.REFERENCE_GENE_ANNOTATIONS} > {output.UPSTREAM} \
+        && bedtools closest -io -iu -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.STEP_THR_DS} \
+        && bedtools intersect -v -a {output.STEP_THR_DS} -b {input.REFERENCE_GENE_ANNOTATIONS} > {output.DOWNSTREAM}"
+
+# Filter the closest gene annotaions based on strand and proximity
+rule filterClosestGenes:
+    input:
+        UPSTREAM   = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.upstream_genes",
+        DOWNSTREAM = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.downstream_genes"
+    params:
+        CIS_REGION = config['cis_region']
+    output:
+        "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest"
+    conda:
+        "envs/emotep.yaml"
+    shell:
+        "python3 {script_dir}/GTRD_parse_closest.py {input.UPSTREAM} {input.DOWNSTREAM} {params.CIS_REGION} {output}"
+
+# Extract the sequences under the binding event ChIP-seq GTRD_peaks
+rule extractPeakSeqs:
+    input:
+        BINDING_EVENT_ANNOTATIONS  = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest",
+        REFERENCE_GENOME_SEQUENCES = expand("{INPUT_GENOME}.singleLine.simpleHeader", INPUT_GENOME = config['reference_genome']['sequences'])
+    output:
+        "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.fasta"
+    conda:
+        "envs/emotep.yaml"
+    shell:
+        "bedtools getfasta -s -name -fi {input.REFERENCE_GENOME_SEQUENCES} -bed {input.BINDING_EVENT_ANNOTATIONS} -fo {output} "
