@@ -38,7 +38,6 @@ gene with the TSS closest to the binding event coordinates.
 event annotations, and ``GTRD_parse_reformat.py`` is used to transform from
 fasta format to a three column format required by the following scripts.
 
-
 |
 
 *******
