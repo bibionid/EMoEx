@@ -14,7 +14,6 @@ import argparse
 import numpy   as np
 import pandas  as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 #Define custom functions
 def parseBEDinput (bed_infile):
@@ -61,24 +60,16 @@ def main (inBED, out_path):
     #extract the dataframe
     BedAnnotData_df = BedAnnotData[1]
 
-    #set plot layout
-    plt.figure(figsize = (16, 6))
-    plt.tight_layout()
-
     #calculate length of promoter annotations
     promoterLengths = BedAnnotData_df['stop'] - BedAnnotData_df['start']
 
-    #make the lengths a list
-    promoterLengthList = promoterLengths.values.tolist()
-
     #plot the histogram
-    dist = sns.distplot(promoterLengthList, bins = 50, kde = False)
+    dist = sns.displot(data = promoterLengths, x = promoterLengths, bins = 50)
     dist.set(xlabel = "Length (nucleotides)", ylabel = "Count")
+    dist.fig.set_size_inches(16,6)
 
     #write figure
-    figure   = dist.get_figure()
-
-    figure.savefig(out_path + '/cisRegions_lengthDist.pdf')
+    dist.savefig(out_path + '/cisRegions_lengthDist.pdf')
 
     print('\nAnnotation size distribution plot written to: ' + out_path + '/cisRegions_lengthDist.pdf\n')
 

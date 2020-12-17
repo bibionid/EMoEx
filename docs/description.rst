@@ -23,7 +23,7 @@ Taking the target species genome and annotation as input, ``cisRegion.py``
 creates an annotation of a user-defined region upstream of each gene in the
 annotation provided. The distribution of these regions is plotted by
 ``cisRegion_displot.py`` and then the sequences extracted from the input genome
-using ``bedtools getfasta``
+using ``bedtools getfasta``.
 
 For the well annotated models species, ChIP-seq data collected by the
 `GTRD Database <gtrd.biouml.org>`_ is parsed from .bidBed to .bed by
