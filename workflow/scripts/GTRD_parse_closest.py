@@ -43,7 +43,7 @@ def createOutputLine(in_key, in_vals, output):
     be_coords = in_key.split('_')
 
     #create an identifier: TF ensemble - TF gene name _ Target Gene ensembl - Target Gene name
-    ident = '_'.join(['-'.join(be_coords[3:]), '-'.join([in_vals[3], in_vals[6]])])
+    ident = '_'.join([';'.join(be_coords[3:]), ';'.join([in_vals[3], in_vals[6]])])
 
     #create the desired format
     #event coords, gene strand, identifier

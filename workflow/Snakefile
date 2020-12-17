@@ -36,7 +36,8 @@ rule all:
         expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.upstream_genes", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
         expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.downstream_genes", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
         expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
-        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.fasta", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed)
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.fasta", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed),
+        expand("{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.txt", OUTPUT_DIR = output_dir, GTRD_BIGBED_FILE = gtrd_bed)
 
 # Prepare genome sequences for the pipeline
 rule sequencePrep:
@@ -127,7 +128,6 @@ rule extractClosestGenes:
         "envs/emotep.yaml"
     shell:
         "bedtools window -w 10000 -a {input.BINDING_EVENT_ANNOTATIONS} -b {input.REFERENCE_GENE_ANNOTATIONS} > {output.STEP_ONE} \
-        #curate the next .bed file\
         && cut -f6- {output.STEP_ONE} >  {output.STEP_TWO}\
         && sort -k1,1 -k2,2n  {output.STEP_TWO} > {output.STEP_THR} \
         && bedtools closest -io -id -D ref -a {input.BINDING_EVENT_ANNOTATIONS} -b {output.STEP_THR} > {output.STEP_THR_US} \
@@ -159,4 +159,15 @@ rule extractPeakSeqs:
     conda:
         "envs/emotep.yaml"
     shell:
-        "bedtools getfasta -s -name -fi {input.REFERENCE_GENOME_SEQUENCES} -bed {input.BINDING_EVENT_ANNOTATIONS} -fo {output} "
+        "bedtools getfasta -fi {input.REFERENCE_GENOME_SEQUENCES} -bed {input.BINDING_EVENT_ANNOTATIONS} -fo {output} -s -name"
+
+#convert to three column TF:TG:TFBS format
+rule convertToThreeColumn:
+    input:
+        BINDING_EVENT_SEQUENCES = "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.fasta"
+    output:
+        "{OUTPUT_DIR}/{GTRD_BIGBED_FILE}.closest.txt"
+    conda:
+        "envs/emotep.yaml"
+    shell:
+        "python3 {script_dir}/GTRD_parse_reformat.py {input.BINDING_EVENT_SEQUENCES} {output}"
