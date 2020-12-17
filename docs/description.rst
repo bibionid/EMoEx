@@ -48,16 +48,16 @@ Scripts
 The custom scripts used in the pipeline are described below:
 
 .. autoprogram:: workflow.scripts.cisRegion:parser
-  :prog: cisRegion.py
+    :prog: cisRegion.py
 
 .. autoprogram:: workflow.scripts.cisRegion_displot:parser
-  :prog: cisRegion_displot.py
+    :prog: cisRegion_displot.py
 
 .. autoprogram:: workflow.scripts.GTRD_parse_bigBed:parser
-  :prog: GTRD_parse_bigBed.py
+    :prog: GTRD_parse_bigBed.py
 
 .. autoprogram:: workflow.scripts.GTRD_parse_closest:parser
-  :prog: cisRegion_displot.py
+    :prog: GTRD_parse_closest.py
 
 .. autoprogram:: workflow.scripts.GTRD_parse_reformat:parser
-  :prog: cisRegion_displot.py
+    :prog: GTRD_parse_reformat.py
