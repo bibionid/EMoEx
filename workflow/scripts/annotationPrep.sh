@@ -22,14 +22,14 @@ then
 
   # use awk & grep to select desired lines and reformat to 7 coulmn .bed output
   printf "\ngff to bed\n\n"
-  awk '$3 == "gene"' inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.gff | grep 'biotype=protein_coding' | awk -F";" 'OFS="\t" {print $1,$3}' | sed 's/ID=gene-//g' | sed 's/Name=//g' | awk 'OFS="\t" {print $1,$4-1,$5,$9,$6,$7,$10}' > ${INPUT_ANNOTATION}.protein_coding.bed
+  awk '$3 == "gene"' ${INPUT_ANNOTATION} | grep 'biotype=protein_coding' | awk -F";" 'OFS="\t" {print $1,$3}' | sed 's/ID=gene-//g' | sed 's/Name=//g' | awk 'OFS="\t" {print $1,$4-1,$5,$9,$6,$7,$10}' > ${INPUT_ANNOTATION}.protein_coding.bed
 
 elif [[ "${INPUT_ANNOTATION}" == *.gff3 ]]
 then
 
   # use awk & grep to select desired lines and reformat to 7 coulmn .bed output
   printf "\ngff3 to bed\n\n"
-  awk '$3 == "gene"' inputs/ceratitis/GCF_000347755.3_Ccap_2.1_genomic.gff | grep 'biotype=protein_coding' | awk -F";" 'OFS="\t" {print $1,$2}' | sed 's/ID=gene://g' | sed 's/Name=//g' | awk 'OFS="\t" {print $1,$4-1,$5,$9,$6,$7,$10}' > ${INPUT_ANNOTATION}.protein_coding.bed
+  awk '$3 == "gene"' ${INPUT_ANNOTATION} | grep 'biotype=protein_coding' | awk -F";" 'OFS="\t" {print $1,$2}' | sed 's/ID=gene://g' | sed 's/Name=//g' | awk 'OFS="\t" {print $1,$4-1,$5,$9,$6,$7,$10}' > ${INPUT_ANNOTATION}.protein_coding.bed
 
 else
 
