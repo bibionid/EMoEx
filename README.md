@@ -1,5 +1,3 @@
-<img src="https://www.earlham.ac.uk/sites/default/files/images/pages/Brand/EI-double-large-trans-highquality.png" alt="EI Logo" width="200"/>
-
 # EMotEP: **E**arlham **Mot**if **E**xtrapolation **P**ipeline
 
 EMotEP is a Snakemake based pipeline developed to lift-over regulatory motif annotations drawn from ChIP-seq data. The pipeline is designed to use data from well annotated model species, and lift-over to species which have annotated genomes but no regulatory motif annotations.
